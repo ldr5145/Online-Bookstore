@@ -172,3 +172,11 @@ class db_operations:
             FOREIGN KEY (otherLoginID) REFERENCES CustomerCredentials(loginID)
             ON UPDATE CASCADE ON DELETE CASCADE)""")
 
+    def populate_tables(self, data_dict_book, data_dict_author):
+        """Populate relevent tables with formatted data stored in dictionary structures.
+        The data will already be properly formatted in dictionary form (retrieved from a
+        .csv file), so this function takes the pre-formatted data and stores it in Book and
+        Author tables, since those should be populated upon initialization."""
+        self.cursor.execute(
+            "INSERT INTO TABLE Book
+
