@@ -184,7 +184,7 @@ class db_operations:
         self.cursor.execute(
             """ALTER TABLE book MODIFY COLUMN publisher VARCHAR(300)
             CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL""")
-        print("The following books were not added to the database because they had an invalid format:")
+        failed_books = []
         for book in data_book:
             try:
                 date = datetime.datetime.strptime(book[7], '%m/%d/%Y').date()
@@ -195,7 +195,10 @@ class db_operations:
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", t)
             except Exception as e:
                 count = count+1
-                print(t[1])
+                failed_books.append(t[1])
+        if failed_books:
+            print("Some books were not added to the database because they had an invalid format:")
+            print(*failed_books, sep='\n')
         print("\nTotal books not included in database: ", count)
         self.cursor.execute(
             """SELECT COUNT(*)
