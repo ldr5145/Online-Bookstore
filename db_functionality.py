@@ -1,8 +1,9 @@
 import mysql.connector as sqlcon
+import datetime
 
 
 class db_operations:
-    def __init__(self,db_name):
+    def __init__(self, db_name):
         self.db = sqlcon.connect(
             host="localhost",
             user="root",
@@ -29,7 +30,7 @@ class db_operations:
         self.cursor.execute(
             """CREATE TABLE Book (
             ISBN VARCHAR(13),
-            title VARCHAR(300) NOT NULL,
+            title VARCHAR(300),
             publisher VARCHAR(100),
             lang VARCHAR(40),
             publicationDate DATE,
@@ -43,8 +44,7 @@ class db_operations:
         self.cursor.execute(
             """CREATE TABLE Author (
             ID INT,
-            firstName VARCHAR(50),
-            lastName VARCHAR(50),
+            name VARCHAR(200),
             lang VARCHAR(40),
             PRIMARY KEY (ID))""")
 
@@ -172,11 +172,37 @@ class db_operations:
             FOREIGN KEY (otherLoginID) REFERENCES CustomerCredentials(loginID)
             ON UPDATE CASCADE ON DELETE CASCADE)""")
 
-    def populate_tables(self, data_dict_book, data_dict_author):
-        """Populate relevent tables with formatted data stored in dictionary structures.
+    def populate_tables(self, data_book, data_author, initial_stock=20):
+        """Populate relevant tables with formatted data stored in dictionary structures.
         The data will already be properly formatted in dictionary form (retrieved from a
         .csv file), so this function takes the pre-formatted data and stores it in Book and
         Author tables, since those should be populated upon initialization."""
+        count = 0
         self.cursor.execute(
-            "INSERT INTO TABLE Book
+            """ALTER TABLE book MODIFY COLUMN title VARCHAR(300)
+            CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL""")
+        self.cursor.execute(
+            """ALTER TABLE book MODIFY COLUMN publisher VARCHAR(300)
+            CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL""")
+        print("The following books were not added to the database because they had an invalid format:")
+        for book in data_book:
+            try:
+                date = datetime.datetime.strptime(book[7], '%m/%d/%Y').date()
+                t = (book[0], book[1], book[8], book[3], date,
+                     int(book[4]), initial_stock, book[9])
+                self.cursor.execute(
+                    """INSERT INTO book (ISBN, title, publisher, lang, publicationDate, pageCount, stock, price) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", t)
+            except Exception as e:
+                count = count+1
+                print(t[1])
+        print("\nTotal books not included in database: ", count)
+        self.cursor.execute(
+            """SELECT COUNT(*)
+            FROM book""")
+        num_successful = self.cursor.fetchall()
+        print(num_successful[0][0], "books successfully inserted into table \"Book\".")
+        self.db.commit()
 
+    def end_session(self):
+        self.db.close()
