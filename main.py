@@ -8,5 +8,5 @@ dbops.init_db()
 data_list = data_manage.format_csv('books.csv')
 author_dict, book_list = data_manage.extract_authors(data_list)
 
-dbops.populate_tables(book_list, author_dict)
+dbops.populate_tables(book_list, author_dict, 'books.csv')
 dbops.end_session()

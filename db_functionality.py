@@ -22,6 +22,7 @@ class db_operations:
          will throw errors, since it is creating the database tables that will be manipulated in the other
          functions.
         """
+        print("Initializing database...", end='')
         self.cursor.execute("DROP DATABASE %s" % self.db.database)
         self.__init__(self.db_name)
         self.cursor.execute("USE %s" % self.db.database)
@@ -30,8 +31,8 @@ class db_operations:
         self.cursor.execute(
             """CREATE TABLE Book (
             ISBN VARCHAR(13),
-            title VARCHAR(300),
-            publisher VARCHAR(100),
+            title VARCHAR(300) COLLATE utf8_general_ci,
+            publisher VARCHAR(100) COLLATE utf8_general_ci,
             lang VARCHAR(40),
             publicationDate DATE,
             pageCount SMALLINT CHECK(pageCount >= 0),
@@ -43,8 +44,8 @@ class db_operations:
         # Author
         self.cursor.execute(
             """CREATE TABLE Author (
-            ID INT,
-            name VARCHAR(200),
+            ID INT AUTO_INCREMENT,
+            name VARCHAR(200) COLLATE utf8_general_ci,
             lang VARCHAR(40),
             PRIMARY KEY (ID))""")
 
@@ -132,7 +133,7 @@ class db_operations:
         self.cursor.execute(
             """CREATE TABLE HasKeyword (
             ISBN VARCHAR(13),
-            word VARCHAR(50),
+            word VARCHAR(50) COLLATE utf8_general_ci,
             PRIMARY KEY (ISBN, word),
             FOREIGN KEY (ISBN) REFERENCES Book(ISBN)
             ON UPDATE RESTRICT ON DELETE CASCADE)""")
@@ -171,19 +172,16 @@ class db_operations:
             ON UPDATE CASCADE ON DELETE CASCADE,
             FOREIGN KEY (otherLoginID) REFERENCES CustomerCredentials(loginID)
             ON UPDATE CASCADE ON DELETE CASCADE)""")
+        print("done")
 
-    def populate_tables(self, data_book, data_author, initial_stock=20):
+    def populate_tables(self, data_book, data_author, datafile_name, initial_stock=20):
         """Populate relevant tables with formatted data stored in dictionary structures.
         The data will already be properly formatted in dictionary form (retrieved from a
         .csv file), so this function takes the pre-formatted data and stores it in Book and
         Author tables, since those should be populated upon initialization."""
+
+        print("\npopulating book table with input data from", datafile_name)
         count = 0
-        self.cursor.execute(
-            """ALTER TABLE book MODIFY COLUMN title VARCHAR(300)
-            CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL""")
-        self.cursor.execute(
-            """ALTER TABLE book MODIFY COLUMN publisher VARCHAR(300)
-            CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL""")
         failed_books = []
         for book in data_book:
             try:
@@ -206,6 +204,37 @@ class db_operations:
         num_successful = self.cursor.fetchall()
         print(num_successful[0][0], "books successfully inserted into table \"Book\".")
         self.db.commit()
+
+        # Now we populate authors. First need to get all ISBNs of books that were added to the book table
+        print("\nAdding authors to \"Author\" table...", end='')
+        self.cursor.execute("SELECT ISBN FROM Book")
+        list_books = [book[0] for book in self.cursor.fetchall()]
+
+        for author in data_author:
+            self.cursor.execute("INSERT INTO author (name) VALUES (%s)", (author,))
+            self.db.commit()
+            for book in data_author[author]:
+                if book in list_books:
+                    self.cursor.execute("SELECT ID FROM author WHERE name = %s", (author,))
+                    auth_id = self.cursor.fetchone()[0]
+                    self.cursor.execute("INSERT IGNORE INTO wrote VALUES (%s,%s)", (auth_id, book))
+                    self.db.commit()
+        print("done")
+        # Finally, populate HasKeyword table. For now just add words in title and author names
+        print("\nGenerating keywords for \"HasKeyword\" table...", end='')
+        for book in list_books:
+            self.cursor.execute("SELECT title from book WHERE ISBN = %s", (book,))
+            keywords = [i[0].split(' ') for i in self.cursor.fetchall()]
+            self.cursor.execute("SELECT name FROM author A, wrote W WHERE A.ID = W.authorID AND W.ISBN = %s", (book,))
+            authors = [i[0].split(' ') for i in self.cursor.fetchall()]
+
+            keywords.extend(authors)
+            for word_subset in keywords:
+                for word in word_subset:
+                    if not word.isspace() and word:
+                        self.cursor.execute("INSERT IGNORE INTO HasKeyword VALUES(%s,%s)", (book, word))
+                        self.db.commit()
+        print("done")
 
     def end_session(self):
         self.db.close()
