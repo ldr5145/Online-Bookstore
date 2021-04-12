@@ -1,12 +1,10 @@
 import mysql.connector as sqlcon
 import db_functionality as db_func
 import data_management as data_manage
+from flask import Flask, request, render_template
 
-dbops = db_func.db_operations("projectdb")
-dbops.init_db()
+app = Flask(__name__)
 
-data_list = data_manage.format_csv('books.csv')
-author_dict, book_list = data_manage.extract_authors(data_list)
-
-dbops.populate_tables(book_list, author_dict, 'books.csv')
-dbops.end_session()
+@app.route("/")
+def hello():
+    return 'Hello, World!'
