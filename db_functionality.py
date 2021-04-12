@@ -180,7 +180,7 @@ class db_operations:
         .csv file), so this function takes the pre-formatted data and stores it in Book and
         Author tables, since those should be populated upon initialization."""
 
-        print("\npopulating book table with input data from", datafile_name)
+        print("\nPopulating book table with input data from", datafile_name, "...", end='')
         count = 0
         failed_books = []
         for book in data_book:
@@ -195,7 +195,7 @@ class db_operations:
                 count = count+1
                 failed_books.append(t[1])
         if failed_books:
-            print("Some books were not added to the database because they had an invalid format:")
+            print("\nSome books were not added to the database because they had an invalid format:")
             print(*failed_books, sep='\n')
         print("\nTotal books not included in database: ", count)
         self.cursor.execute(
@@ -204,7 +204,7 @@ class db_operations:
         num_successful = self.cursor.fetchall()
         print(num_successful[0][0], "books successfully inserted into table \"Book\".")
         self.db.commit()
-
+        print("done")
         # Now we populate authors. First need to get all ISBNs of books that were added to the book table
         print("\nAdding authors to \"Author\" table...", end='')
         self.cursor.execute("SELECT ISBN FROM Book")
