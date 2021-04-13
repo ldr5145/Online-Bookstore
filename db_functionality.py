@@ -62,7 +62,7 @@ class db_operations:
             loginID VARCHAR(30),
             firstName VARCHAR(50) NOT NULL,
             lastName VARCHAR(50) NOT NULL,
-            passwd VARCHAR(50) NOT NULL,
+            pass VARCHAR(50) NOT NULL,
             phone CHAR(10) NOT NULL,
             PRIMARY KEY (loginID),
             FOREIGN KEY (phone) REFERENCES CustomerPersonal(phone)
@@ -295,6 +295,24 @@ class db_operations:
                                                                                         info['lastName'], info['password'],
                                                                                         int(info['phone'])))
         self.db.commit()
+
+    def confirm_login(self, info):
+        """Given a username and a password, confirm whether it is a valid account and check if it is a customer or
+        a manager. NOTE: managers and customers are intentionally separated, so a manager's account won't be found
+        in customer, and vice versa. Therefore, we can return a definitive result on the first hit but need to check
+        both tables if we miss the first search."""
+        self.cursor.execute("SELECT * FROM customercredentials WHERE loginID=%s AND pass=%s",
+                            (info['loginID'], info['password']))
+        if len(self.cursor.fetchall()):
+            return False, True
+
+        self.cursor.execute("SELECT * FROM managercredentials WHERE loginID=%s AND pass=%s",
+                            (info['loginID'], info['password']))
+        if len(self.cursor.fetchall()):
+            return True, True
+
+        return False, False
+
 
     def end_session(self):
         self.db.close()

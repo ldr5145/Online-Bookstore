@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block form_name %}login{% endblock %}
+{% block style %}
+    {{ super() }}
+    #loginID{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+    #password{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+    #loginButton{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+{% endblock %}
+{% block title %}Bookstore - Login {% endblock %}
+{% block head_title %} Bookstore Login Page {% endblock %}
+{% block dev_id %} {{ super() }} {% endblock %}
+{% block submit_form %}
+    <div class="login">
+    <form id="login" method="post">
+        <label>Username:</label>
+        <input type="text" id="loginID" name="Username">
+        <br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="Password">
+        <br><br>
+        <input type="checkbox" name="Remember">
+        <span>Remember Me</span>
+        <br>
+        <input type="submit" id="loginButton" value="Sign in">
+        <br><br>
+        <a style="float:left" href="forgot_password">Forgot Password</a>
+        <a style="float:right" href="create_account">New Customer</a>
+    </form>
+    </div>
+{% endblock %}
