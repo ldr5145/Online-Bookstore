@@ -1,7 +1,7 @@
 import mysql.connector as sqlcon
 import db_functionality as db_func
 import data_management as data_manage
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect
 
 db_ops = db_func.db_operations('projectdb')
 app = Flask(__name__)
@@ -23,8 +23,8 @@ def forgot():
 def new_account():
     password=password2=''
     user_info = {'firstName':'', 'lastname':'', 'phone':'', 'address':'', 'loginID':'', 'password':'', 'password2':''}
+    errors = []
     if request.method == "POST":
-        print(request.form)
         user_info['firstName'] = request.form['firstName']
         user_info['lastName'] = request.form['lastName']
         user_info['phone'] = request.form['phone']
@@ -36,8 +36,9 @@ def new_account():
         if result['success']:
             print('new account successfully created')
             db_ops.add_customer(user_info, result['duplicatePhone'])
+            return redirect('/')
         else:
-            errors = [result['errorCodes'], result['message']]
+            errors = {'errorCodes':result['errorCodes'], 'messages':result['message']}
             print(errors)
 
-    return render_template('create_account.html', developer='Liam Raehsler', posts=user_info)
+    return render_template('create_account.html', developer='Liam Raehsler', posts=user_info, errors=errors)
