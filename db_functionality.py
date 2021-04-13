@@ -274,5 +274,13 @@ class db_operations:
             result['message'].append('That username is taken, please select another.')
         return result
 
+    def add_customer(self, info):
+        """Take in a (valid) set of new user information and insert properly into the database."""
+        self.cursor.execute("INSERT INTO customerpersonal VALUES (%s,%s)", (int(info['phone']), info['address']))
+        self.cursor.execute("INSERT INTO customercredentials VALUES (%s,%s,%s,%s,%s)", (info['loginID'], info['firstName'],
+                                                                                        info['lastName'], info['password'],
+                                                                                        int(info['phone'])))
+        self.db.commit()
+
     def end_session(self):
         self.db.close()

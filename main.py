@@ -33,5 +33,11 @@ def new_account():
         user_info['password'] = request.form['password']
         user_info['password2'] = request.form['password2']
         result = db_ops.verify_new_customer_creds(user_info)
+        if result['success']:
+            print('new account successfully created')
+            db_ops.add_customer(user_info)
+        else:
+            errors = [result['errorCodes'], result['message']]
+            print(errors)
 
     return render_template('create_account.html', developer='Liam Raehsler', posts=user_info)
