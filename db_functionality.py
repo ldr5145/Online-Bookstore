@@ -252,7 +252,7 @@ class db_operations:
             successfully added to the database and False otherwise), a list of error codes, and a list of
             error messages that will be displayed on the user interface if invalid data is entered."""
 
-        result = {'success': True, 'message':[], 'errorCodes':[]}
+        result = {'success': True, 'message':[], 'errorCodes':[], 'duplicatePhone':False}
 
         # Valid password check
         if not (info['password'] == info['password2']):
@@ -272,11 +272,25 @@ class db_operations:
             result['success'] = False
             result['errorCodes'].append(3)
             result['message'].append('That username is taken, please select another.')
+
+        # if phone number is already taken, the address should also be the same
+        self.cursor.execute("SELECT * FROM customerpersonal WHERE phone = %s", (info['phone'],))
+        for entry in self.cursor.fetchall():
+            if entry[1] != info['address']:
+                result['success'] = False
+                result['errorCodes'].append(4)
+                result['message'].append('That phone number is already taken. Each phone number can only be'
+                                         ' used by one address.')
+                break
+            result['duplicatePhone'] = True
+
         return result
 
-    def add_customer(self, info):
+    def add_customer(self, info, dup):
         """Take in a (valid) set of new user information and insert properly into the database."""
-        self.cursor.execute("INSERT INTO customerpersonal VALUES (%s,%s)", (int(info['phone']), info['address']))
+        if not dup:
+            self.cursor.execute("INSERT INTO customerpersonal VALUES (%s,%s)", (int(info['phone']), info['address']))
+
         self.cursor.execute("INSERT INTO customercredentials VALUES (%s,%s,%s,%s,%s)", (info['loginID'], info['firstName'],
                                                                                         info['lastName'], info['password'],
                                                                                         int(info['phone'])))
