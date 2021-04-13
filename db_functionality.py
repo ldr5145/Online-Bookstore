@@ -1,6 +1,6 @@
 import mysql.connector as sqlcon
 import datetime
-
+import re
 
 class db_operations:
     def __init__(self, db_name):
@@ -235,6 +235,44 @@ class db_operations:
                         self.cursor.execute("INSERT IGNORE INTO HasKeyword VALUES(%s,%s)", (book, word))
                         self.db.commit()
         print("done")
+
+    def verify_new_customer_creds(self, info):
+        """Function to take the information entered by a new customer and check its validity.
+                A valid set of credentials should exhibit the following qualities:
+                    1. Username is not already present in the database
+                    2. All fields are not empty (all information is required)
+                    3. both of the passwords entered match each other exactly
+                    4. All other database integrity constraints are met
+                        (names are not too long, phone number is 10 digits, etc...)
+                    5. Type requirements are met (phone is an integer, password does not have spaces or any other
+                        invalid characters, etc...)
+
+                    2 and 5 can be handled in html restraints, 1 3 and 5 should be checked here.
+            Returns a result dictionary, containing an overall success boolean (set to True if the customer was
+            successfully added to the database and False otherwise), a list of error codes, and a list of
+            error messages that will be displayed on the user interface if invalid data is entered."""
+
+        result = {'success': True, 'message':[], 'errorCodes':[]}
+
+        # Valid password check
+        if not (info['password'] == info['password2']):
+            result['success'] = False
+            result['errorCodes'].append(1)
+            result['message'].append('Passwords must match.')
+
+        # valid phone number check
+        if not re.match(r'^[2-9][0-9]+$', info['phone']):
+            result['success'] = False
+            result['errorCodes'].append(2)
+            result['message'].append('Phone number must be a valid, 10-digit number.')
+
+        # unique customer username check
+        self.cursor.execute("SELECT COUNT(*) FROM customercredentials WHERE loginID = %s", (info['loginID'],))
+        if self.cursor.fetchone()[0] != 0:
+            result['success'] = False
+            result['errorCodes'].append(3)
+            result['message'].append('That username is taken, please select another.')
+        return result
 
     def end_session(self):
         self.db.close()
