@@ -10,14 +10,18 @@ app.secret_key = 'top_secret_key'
 @app.route("/", methods=["POST", "GET"])
 def login():
     creds = {'loginID': '', 'password':''}
+    if 'remember' in session and session['remember']:
+        return redirect(url_for('welcome_page'))
     if request.method == "POST":
         creds['loginID'] = request.form['Username']
         creds['password'] = request.form['Password']
+        remember_me = True if 'Remember' in request.form else False
         is_manager, valid_login = db_ops.confirm_login(creds)
         print(is_manager, valid_login)
         if valid_login:
             session['username'] = creds['loginID']
             session['admin'] = is_manager
+            session['remember'] = remember_me
             return redirect(url_for('welcome_page'))
 
     return render_template('login.html', developer='Liam Raehsler',posts=creds)
@@ -64,4 +68,6 @@ def welcome_page():
 @app.route("/logout")
 def logout():
     session.pop('username', None)
+    session.pop('admin', None)
+    session.pop('remember', None)
     return redirect(url_for('login'))
