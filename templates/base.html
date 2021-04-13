@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+    {% block style %}
+        body{
+            margin: 0;
+            padding: 0;
+            background-color: powderblue;
+            font-family: 'Arial';
+        }
+        .{% block form_name %}{% endblock %}{
+            width: 350px;
+            overflow: hidden;
+            margin: auto;
+            margin: 20 0 0 450px;
+            padding: 80px;
+            background:DarkOliveGreen;
+            border-radius:15px;
+        }
+        label{
+            color:Black;
+            font-size: 20px;
+        }
+        small_label{
+            font-size: 13px;
+            float: left;
+        }
+        span{
+            color:Black;
+            font-size: 17px;
+        }
+        {% endblock %}
+    </style>
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body style="background-color:powderblue;">
+    <h1 style="text-align:center;">{% block head_title %}{% endblock %}</h1>
+    {% block dev_id %}
+    <h2 style="text-align:center;">This site was developed by: {{ developer }}</h2>
+    {% endblock %}
+    <hr>
+    <br><br>
+    {% block submit_form %}{% endblock %}
+</body>
+</html>

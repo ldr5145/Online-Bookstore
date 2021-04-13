@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block form_name %}create_account{% endblock %}
+{% block style %}
+{{ super() }}
+    #firstName{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+    #lastName{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+    #address{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+    #phone{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+    #Username{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+    #password{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+    #password2{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+    #submit_account_info{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+{% endblock %}
+{% block title %}Bookstore - Create Account{% endblock %}
+{% block head_title %}New Customer - Create Account{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="create_account">
+    <form id="create_account" method="post">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="firstName" value="{{ posts.firstName }}">
+        <br><br>
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="lastName" value="{{ posts.lastName }}">
+        <br><br>
+        <label for="phone">Phone Number:</label>
+        <input type="text" id="phone" name="phone" value="{{ posts.phone }}">
+        <br><br>
+        <label for="address">Home Address:</label>
+        <input type="text" id="address" name="address" value="{{ posts.address }}">
+        <br><br>
+        <label for="Username">Username (30 or fewer characters) </label>
+        <input type="text" id="Username" name="loginID" value="{{ posts.loginID }}">
+        <br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" value="{{ posts.password }}">
+        <br><br>
+        <label for="password2">Re-enter Password:</label>
+        <input type="password" id="password2" name="password2"value="{{ posts.password2 }}">
+        <br><br><br><br>
+        <input type="submit" id="submit_account_info" value="Create Account!">
+    </form>
+    </div>
+{% endblock %}
