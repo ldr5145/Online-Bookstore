@@ -67,25 +67,25 @@
 <div class="create_account">
     <form id="create_account" method="post">
         <label for="firstName">First Name:</label>
-        <input type="text" id="firstName" name="firstName" value="{{ posts.firstName }}">
+        <input type="text" id="firstName" name="firstName" value="{{ posts.firstName }}" minlength="1" maxlength="50">
         <br><br>
         <label for="lastName">Last Name:</label>
-        <input type="text" id="lastName" name="lastName" value="{{ posts.lastName }}">
+        <input type="text" id="lastName" name="lastName" value="{{ posts.lastName }}" minlength="1" maxlength="50">
         <br><br>
         <label for="phone">Phone Number:</label>
-        <input type="text" id="phone" name="phone" value="{{ posts.phone }}">
+        <input type="text" id="phone" name="phone" value="{{ posts.phone }}" minlength="10" maxlength="10">
         <br><br>
         <label for="address">Home Address:</label>
-        <input type="text" id="address" name="address" value="{{ posts.address }}">
+        <input type="text" id="address" name="address" value="{{ posts.address }}" minlength="1" maxlength="300">
         <br><br>
         <label for="Username">Username (30 or fewer characters) </label>
-        <input type="text" id="Username" name="loginID" value="{{ posts.loginID }}">
+        <input type="text" id="Username" name="loginID" value="{{ posts.loginID }}" minlength="1" maxlength="30">
         <br><br>
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" value="{{ posts.password }}">
+        <input type="password" id="password" name="password" value="{{ posts.password }}" minlength="6" maxlength="50">
         <br><br>
         <label for="password2">Re-enter Password:</label>
-        <input type="password" id="password2" name="password2"value="{{ posts.password2 }}">
+        <input type="password" id="password2" name="password2"value="{{ posts.password2 }}" minlength="6" maxlength="50">
         <br><br><br><br>
         <input type="submit" id="submit_account_info" value="Create Account!">
     </form>
