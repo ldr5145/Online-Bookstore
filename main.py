@@ -1,16 +1,26 @@
 import mysql.connector as sqlcon
 import db_functionality as db_func
 import data_management as data_manage
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, session,url_for
 
 db_ops = db_func.db_operations('projectdb')
 app = Flask(__name__)
+app.secret_key = 'top_secret_key'
 
 @app.route("/", methods=["POST", "GET"])
-def hello():
+def login():
+    creds = {'loginID': '', 'password':''}
     if request.method == "POST":
-        print(request.form)
-    return render_template('index.html', developer='Liam Raehsler')
+        creds['loginID'] = request.form['Username']
+        creds['password'] = request.form['Password']
+        is_manager, valid_login = db_ops.confirm_login(creds)
+        print(is_manager, valid_login)
+        if valid_login:
+            session['username'] = creds['loginID']
+            session['admin'] = is_manager
+            return redirect(url_for('welcome_page'))
+
+    return render_template('login.html', developer='Liam Raehsler',posts=creds)
 
 @app.route("/forgot_password", methods=["POST", "GET"])
 def forgot():
@@ -42,3 +52,16 @@ def new_account():
             print(errors)
 
     return render_template('create_account.html', developer='Liam Raehsler', posts=user_info, errors=errors)
+
+@app.route("/index", methods=["POST","GET"])
+def welcome_page():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if request.method == "POST":
+        print(request.form)
+    return render_template('index.html')
+
+@app.route("/logout")
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login'))
