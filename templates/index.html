@@ -1,10 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h1>Made it to welcome page!</h1>
-</body>
-</html>
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+{% endblock %}
+{% block title %}Bookstore Home Page{% endblock %}
+{% block head_title %}Welcome to the Bookstore!{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <form id="login" method="post">
+        <label>Username:</label>
+        <input type="text" id="loginID" name="Username">
+        <br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="Password">
+        <br><br>
+        <input type="checkbox" name="Remember">
+        <span>Remember Me</span>
+        <br>
+        <input type="submit" id="loginButton" value="Sign in">
+        <br><br>
+        <a style="float:left" href="forgot_password">Forgot Password</a>
+        <a style="float:right" href="create_account">New Customer</a>
+    </form>
+    </div>
+{% endblock %}
