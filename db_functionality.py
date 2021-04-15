@@ -313,6 +313,14 @@ class db_operations:
 
         return False, False
 
+    def valid_book(self, info):
+        """Given an ISBN, find the book in the database and return the price, a boolean indicating whether or not
+        it exists, and the stock. NOTE: we need to return the stock because if the stock is 0 but we found the book
+        we want to output a different message"""
+        self.cursor.execute("SELECT ISBN, title, price, stock FROM book WHERE ISBN=%s", (info['ISBN'],))
+        for book in self.cursor.fetchall():
+            return True, float(book[2]), book[1], book[3]
+        return False, 0, 0
 
     def end_session(self):
         self.db.close()

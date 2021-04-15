@@ -4,13 +4,13 @@
     <style>
     {% block style %}
         body{
-            margin: 0;
+            margin: 0 auto;
             padding: 0;
             background-color: powderblue;
             font-family: 'Arial';
         }
         .main_form{
-            width: 350px;
+            width: 450px;
             overflow: hidden;
             margin: auto;
             margin: 20 0 0 450px;
@@ -63,6 +63,9 @@
             color:Black;
             font-size: 17px;
         }
+        a:hover{
+            color: White;
+        }
         {% endblock %}
     </style>
     <title>{% block title %}{% endblock %}</title>
@@ -77,7 +80,8 @@
     <br><br>
     <div id="sidebar" class="side_menu">
         <a href="javascript:void(0);" class="closebtn" onclick="closeNav()">&times;</a>
-        <a href="#">Browse books</a>
+        <a href="/index">Home Page</a>
+        <a href="/index/catalog">Browse books</a>
         <a href="#">Your orders</a>
         <a href="#">Rate books</a>
         <a href="#">Shopping cart</a>

@@ -65,6 +65,37 @@ def welcome_page():
         print(request.form)
     return render_template('index.html', user=session['username'], developer='Liam Raehsler')
 
+@app.route("/index/catalog", methods=["POST","GET"])
+def browse():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if request.method == "POST":
+        print(request.form)
+    return render_template('browse_books.html', developer='Liam Raehsler')
+
+@app.route("/index/order_book", methods=["POST","GET"])
+def order_book():
+    order_info={'ISBN':'','quantity':''}
+    error={}
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if request.method == "POST":
+        order_info['ISBN'] = request.form['ISBN']
+        order_info['quantity'] = request.form['quantity']
+        valid, price, title, stock = db_ops.valid_book(order_info)
+        print(valid, price, title, stock)
+        if valid:
+            if stock > 0:
+                if 'order' in request.form:
+                    session['price'] = price
+                    # return redirect(url_for('order_confirm'))
+                else:
+                    # will have to add info for what happens when user adds to cart
+                    pass
+        else:
+            error = 'That book is not in our database, please try again.'
+    return render_template('order_book.html', developer='Liam Raehsler', error=error)
+
 @app.route("/logout")
 def logout():
     session.pop('username', None)

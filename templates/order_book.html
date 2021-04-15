@@ -1,0 +1,52 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+    #order{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+    #add_to_cart{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+}
+{% endblock %}
+{% block title %}Your order{% endblock %}
+{% block head_title %}Create an order{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <form id="main_form" method="post">
+        <label>If you already know the ISBN of the book(s) you wish to order,
+        enter them below. Otherwise, you can browse our books by clicking <a style="font-size:20px" href="/index/catalog">here.
+            </a></label>
+        <br><br>
+        <label for="ISBN">ISBN:</label>
+        <input style="width:100px" type="text" id="ISBN" name="ISBN" minlength="13" maxlength="13" oninput="numberEntered()">
+        &nbsp;
+        <label for="quantity">Quantity:</label>
+        <input style="width:37px" type="number" id="quantity" name="quantity" min="1" max="999" disabled>
+        <br><br>
+        <input type="submit" id="order" name="order" value="Order now!">
+        &nbsp;
+        <input type="submit" id="add_to_cart" name="add_to_cart" value="Add to cart">
+    </form>
+</div>
+<script type="text/javascript">
+    function numberEntered() {
+        field = document.getElementById("quantity").disabled=false;
+    }
+    function numberRemoved() {
+        field = document.getElementById("quantity").disabled=true;
+        field.value="";
+    }
+</script>
+{% endblock %}

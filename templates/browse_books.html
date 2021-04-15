@@ -1,0 +1,15 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+{% endblock %}
+{% block title %}Book catalog{% endblock %}
+{% block head_title %}Book catalog{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <form id="main_form" method="post">
+        <label>Search for books here</label>
+        <input type="search">
+    </form>
+</div>
+{% endblock %}
