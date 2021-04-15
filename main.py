@@ -63,7 +63,7 @@ def welcome_page():
         return redirect(url_for('login'))
     if request.method == "POST":
         print(request.form)
-    return render_template('index.html')
+    return render_template('index.html', user=session['username'], developer='Liam Raehsler')
 
 @app.route("/logout")
 def logout():

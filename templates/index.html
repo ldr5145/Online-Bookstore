@@ -7,20 +7,16 @@
 {% block dev_id %}{{ super() }}{% endblock %}
 {% block submit_form %}
 <div class="main_form">
-    <form id="login" method="post">
-        <label>Username:</label>
-        <input type="text" id="loginID" name="Username">
+    <form id="main_form" method="post">
+        <label>Welcome {{ user }}! Please use the navigation bar on the left to find what you need,
+        or alternatively click any of the links below to be redirected.</label>
         <br><br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="Password">
-        <br><br>
-        <input type="checkbox" name="Remember">
-        <span>Remember Me</span>
-        <br>
-        <input type="submit" id="loginButton" value="Sign in">
-        <br><br>
-        <a style="float:left" href="forgot_password">Forgot Password</a>
-        <a style="float:right" href="create_account">New Customer</a>
+        <ul>
+            <li><a href="#">Search our library</a></li>
+            <li><a href="">Order a book</a></li>
+            <li><a href="#">Leave a review</a></li>
+            <li><a href="#">Read other customer reviews</a></li>
+        </ul>
     </form>
-    </div>
+</div>
 {% endblock %}
