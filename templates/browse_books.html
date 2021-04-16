@@ -1,6 +1,13 @@
 {% extends "base_with_sidebar.html" %}
 {% block style %}
 {{ super() }}
+a:hover{
+    color:White;
+}
+#search_bar{
+    width:250px;
+    height:25px;
+}
 {% endblock %}
 {% block title %}Book catalog{% endblock %}
 {% block head_title %}Book catalog{% endblock %}
@@ -8,8 +15,58 @@
 {% block submit_form %}
 <div class="main_form">
     <form id="main_form" method="post">
-        <label>Search for books here</label>
-        <input type="search">
+        <label for="search_bar">Search for books here</label>
+        <br>
+        <input type="search" id="search_bar" name="query">
+        <br><br>
+        <label><a href="#" onclick="toggleFilters()">Filters</a></label>
+        <div id="filt_div" hidden>
+            <br>
+            <small_label for="title_filt">Title</small_label>
+            <input type="checkbox" id="title_filt" name="title_filt">
+            &nbsp;
+            <small_label for="ISBN_filt">ISBN</small_label>
+            <input type="checkbox" id="ISBN_filt" name="ISBN_filt">
+            &nbsp;
+            <small_label for="author_filt">Author</small_label>
+            <input type="checkbox" id="author_filt" name="author_filt">
+            &nbsp;
+            <small_label for="lang_filt">Language</small_label>
+            <input type="checkbox" id="lang_filt" name="lang_filt">
+            &nbsp;
+            <small_label for="publisher_filt">Publisher</small_label>
+            <input type="checkbox" id="publisher_filt" name="publisher_filt">
+            <br><br>
+            <small_label>Price Limit</small_label>
+            <input type="checkbox" id="price_check" name="price_check">
+            &nbsp;
+            <input type="range" style="width:200px" id="price_slider" name="price_limit" value="50" min="1" max="100"
+                   onchange="updateLabel(this.value)">
+            <small_label id="price_label">$50.00</small_label>
+            <br><br>
+            <small_label>Publication Date:</small_label>
+            <input type="checkbox" name="date_check" id="date_check">
+            &nbsp;
+            <small_label>From</small_label>
+            <input type="date" style="width:130px" id="startDate" name="startDate">
+            &nbsp;
+            <small_label>To</small_label>
+            <input type="date" style="width:130px" id="endDate" name="endDate">
+        </div>
     </form>
 </div>
+<script type="text/javascript">
+    function toggleFilters() {
+        divID = document.getElementById("filt_div");
+        if (divID.hidden) {
+            divID.hidden = false;
+        }
+        else {
+            divID.hidden = true;
+        }
+    }
+    function updateLabel(x) {
+        document.getElementById("price_label").innerHTML = "$" + x + ".00"
+    }
+</script>
 {% endblock %}
