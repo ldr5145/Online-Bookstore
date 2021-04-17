@@ -8,25 +8,54 @@ a:hover{
     width:250px;
     height:25px;
 }
+.inline {
+  display: inline;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 1em;
+  font-family: serif;
+}
+.link-button:focus {
+  outline: none;
+}
+.link-button:active {
+  color:red;
+}
 {% endblock %}
 {% block title %}Book catalog{% endblock %}
 {% block head_title %}Book catalog{% endblock %}
 {% block dev_id %}{{ super() }}{% endblock %}
 {% block submit_form %}
-<div class="main_form">
+<div class="main_form" style="width:800px">
     <form id="main_form" method="post">
         <label for="search_bar">Search for books here</label>
         <br>
         <input type="search" id="search_bar" name="query">
         <br><br>
+        <div id="order_div">
+            <small_label style="font-size:17px">Order results by:</small_label>
+            <br>
+            <input type="radio" id="order_published" name="order" checked="true" value="0">
+            <small_label>Date Published</small_label>
+            &nbsp;
+            <input type="radio" id="order_score" name="order" value="1">
+            <small_label>Average score</small_label>
+            &nbsp;
+            <input type="radio" id="order_trusted" name="order" value="2">
+            <small_label>Average trusted score</small_label>
+        </div>
+        <br>
         <label><a href="#" onclick="toggleFilters()">Filters</a></label>
         <div id="filt_div" hidden>
             <br>
             <small_label for="title_filt">Title</small_label>
             <input type="checkbox" id="title_filt" name="title_filt">
-            &nbsp;
-            <small_label for="ISBN_filt">ISBN</small_label>
-            <input type="checkbox" id="ISBN_filt" name="ISBN_filt">
             &nbsp;
             <small_label for="author_filt">Author</small_label>
             <input type="checkbox" id="author_filt" name="author_filt">
@@ -54,6 +83,38 @@ a:hover{
             <input type="date" style="width:130px" id="endDate" name="endDate">
         </div>
     </form>
+    <br><br>
+    <div id="results_div">
+       <table style="width:100%">
+           <tr>
+               <th>Title</th>
+               <th>Author(s)</th>
+               <th>Price</th>
+               <th>More Info</th>
+           </tr>
+           {% for key,value in posts.results.items() %}
+           <tr>
+               <td>{{ value[0][1] }}</td>
+               <td>
+                   {% for auth in value[1] %}
+                       {{ auth }}
+                       {% if not loop.last %}
+                            ,
+                       {% endif %}
+                   {% endfor %}
+               </td>
+               <td>{{ value[0][7] }}</td>
+               <td>
+                   <form method="post" action="book_info" class="inline">
+                      <button type="submit" name="ISBN" value="{{ key }}" class="link-button">
+                        Link
+                      </button>
+                   </form>
+               </td>
+           </tr>
+           {% endfor %}
+       </table>
+    </div>
 </div>
 <script type="text/javascript">
     function toggleFilters() {

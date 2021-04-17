@@ -196,7 +196,7 @@ class db_operations:
                 failed_books.append(t[1])
         if failed_books:
             print("\nSome books were not added to the database because they had an invalid format:")
-            print(*failed_books, sep='\n')
+            print(failed_books, sep='\n')
         print("\nTotal books not included in database: ", count)
         self.cursor.execute(
             """SELECT COUNT(*)
@@ -321,6 +321,71 @@ class db_operations:
         for book in self.cursor.fetchall():
             return True, float(book[2]), book[1], book[3]
         return False, 0, 0
+
+    def find_books(self, query, filters, dates, order):
+        """Given a query entered by the user, return all books that match the search. Results must
+        satisfy the provided filters. I will be making the result a dict so that duplicates are avoided.
+        Also, because I may need to sort all of the books by a certain value, each filter check will
+        add a subsection of the query and only one query will be executed at the end so that all of the results
+        can be ordered together."""
+
+        results = {}
+        query_sections = ''
+        args = []
+        # we don't want all filters off, because that would throw a SQL error. So if user does not select
+        # any filters, we will assume they want all results.
+        if not filters:
+            filters['title_filt'] = 'on'
+            filters['author_filt'] = 'on'
+            filters['lang_filt'] = 'on'
+            filters['publisher_filt'] = 'on'
+
+        # go through each active filter and do a query based on that filter, then append results to the final
+        # return value
+        if 'title_filt' in filters:
+            query_sections += "SELECT * FROM book WHERE title LIKE %s"
+            args.append('%'+query+'%')
+
+        if 'author_filt' in filters:
+            if query_sections:
+                query_sections += ' UNION '
+            query_sections += """SELECT B.ISBN, title, publisher, B.lang, publicationDate, pageCount, 
+            stock, B.price, B.subject FROM book B, author A, wrote W WHERE W.ISBN = B.ISBN 
+            AND W.authorID = A.ID AND A.name LIKE %s"""
+            args.append('%' + query + '%')
+
+        if 'lang_filt' in filters:
+            if query_sections:
+                query_sections += ' UNION '
+            query_sections += "SELECT * FROM book WHERE lang LIKE %s"
+            args.append('%' + query + '%')
+
+        if 'publisher_filt' in filters:
+            if query_sections:
+                query_sections += ' UNION '
+            query_sections += "SELECT * FROM book WHERE publisher LIKE %s"
+            args.append('%' + query + '%')
+
+        # determine ordering method
+        if order == '0':
+            query_sections += " ORDER BY publicationDate"
+        elif order == '1':
+            query_sections += "ORDER BY "
+
+        # execute final constructed query and store results in a dict
+        self.cursor.execute(query_sections, args)
+        books = self.cursor.fetchall()
+        for book in books:
+            if str(book[0]) not in results:
+                cur_authors = []
+                results[str(book[0])] = book
+                # now we need to find all the authors of this book so we can display them
+                self.cursor.execute("""SELECT name FROM author A, wrote W, book B WHERE A.ID = W.authorID AND
+                W.ISBN = B.ISBN AND B.ISBN = %s""", (book[0],))
+                for author in self.cursor.fetchall():
+                    cur_authors.append(author[0])
+                results[str(book[0])] = [results[str(book[0])], cur_authors]
+        return results
 
     def end_session(self):
         self.db.close()

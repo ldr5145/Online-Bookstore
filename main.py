@@ -67,11 +67,28 @@ def welcome_page():
 
 @app.route("/index/catalog", methods=["POST","GET"])
 def browse():
+    posts={'results':{}, 'filters':{}, 'startDate':'', 'endDate':'', 'order':'0'}
     if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == "POST":
+        posts['order'] = request.form['order']
+        for i in request.form:
+            if request.form[i] == 'on':
+                # its a filter, add to filters in posts
+                posts['filters'][i] = 'on'
+                posts['startDate'] = request.form['startDate']
+                posts['endDate'] = request.form['endDate']
+
+        posts['results'] = db_ops.find_books(request.form['query'],posts['filters'],
+                                             [posts['startDate'], posts['endDate']], posts['order'])
+        print(posts['results'])
+
+    return render_template('browse_books.html', developer='Liam Raehsler', posts=posts)
+
+@app.route("/index/book_info", methods=["POST","GET"])
+def display_book():
+    if request.method == "POST":
         print(request.form)
-    return render_template('browse_books.html', developer='Liam Raehsler')
 
 @app.route("/index/order_book", methods=["POST","GET"])
 def order_book():
