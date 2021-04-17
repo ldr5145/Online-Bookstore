@@ -1,0 +1,12 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+{% endblock %}
+{% block title %}Info about {{ posts.book[1] }}{% endblock %}
+{% block head_title %} {{ posts.book[1] }}{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+
+</div>
+{% endblock %}

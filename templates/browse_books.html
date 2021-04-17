@@ -86,13 +86,15 @@ a:hover{
     <br><br>
     <div id="results_div">
        <table style="width:100%">
+           {% for key,value in posts.results.items() %}
+           {% if loop.first %}
            <tr>
                <th>Title</th>
                <th>Author(s)</th>
                <th>Price</th>
                <th>More Info</th>
            </tr>
-           {% for key,value in posts.results.items() %}
+           {% endif %}
            <tr>
                <td>{{ value[0][1] }}</td>
                <td>

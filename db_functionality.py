@@ -387,5 +387,16 @@ class db_operations:
                 results[str(book[0])] = [results[str(book[0])], cur_authors]
         return results
 
+    def get_single_book_info(self, isbn):
+        self.cursor.execute("SELECT * FROM book WHERE ISBN=%s", (isbn,))
+        books = self.cursor.fetchall()
+        for book in books:
+            authors = []
+            self.cursor.execute("""SELECT name FROM Author A, Wrote W, Book B WHERE A.ID = W.authorID AND
+            W.ISBN = B.ISBN AND B.ISBN = %s""", (isbn,))
+            for auth in self.cursor.fetchall():
+                authors.append(auth[0])
+        return book, authors
+
     def end_session(self):
         self.db.close()

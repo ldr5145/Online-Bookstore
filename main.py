@@ -87,8 +87,20 @@ def browse():
 
 @app.route("/index/book_info", methods=["POST","GET"])
 def display_book():
+    posts = {'book':(), 'authors':[]}
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
     if request.method == "POST":
         print(request.form)
+        book, authors = db_ops.get_single_book_info(request.form['ISBN'])
+        posts['book'] = book
+        posts['authors'] = authors
+
+    if not posts['book']:
+        return redirect(url_for('browse'))
+    return render_template('book_info.html', developer='Liam Raehsler', posts=posts)
+
 
 @app.route("/index/order_book", methods=["POST","GET"])
 def order_book():
