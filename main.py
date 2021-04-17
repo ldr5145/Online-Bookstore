@@ -104,7 +104,7 @@ def display_book():
 
 @app.route("/index/order_book", methods=["POST","GET"])
 def order_book():
-    order_info={'ISBN':'','quantity':''}
+    order_info={'ISBN':'','quantity': ''}
     error={}
     if 'username' not in session:
         return redirect(url_for('login'))
@@ -114,16 +114,33 @@ def order_book():
         valid, price, title, stock = db_ops.valid_book(order_info)
         print(valid, price, title, stock)
         if valid:
-            if stock > 0:
+            if stock > int(order_info['quantity']):
                 if 'order' in request.form:
-                    session['price'] = price
-                    # return redirect(url_for('order_confirm'))
+                    session['order_details'] = {'ISBN': [order_info['ISBN']], 'quantity': [order_info['quantity']],
+                                                'loginID': session['username']}
+                    return redirect(url_for('confirm_order'))
                 else:
                     # will have to add info for what happens when user adds to cart
                     pass
+            else:
+                if stock:
+                    error = ['There are only ' + str(stock) + ' copies of that book left, please reduce your quantity.']
+                else:
+                    error = ['That book is currently sold out, please try again later.']
         else:
-            error = 'That book is not in our database, please try again.'
-    return render_template('order_book.html', developer='Liam Raehsler', error=error)
+            error = ['That book is not in our database, please try again.']
+    return render_template('order_book.html', developer='Liam Raehsler', error_message=error)
+
+@app.route("/index/order_confirm", methods=["POST","GET"])
+def confirm_order():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if 'order_details' not in session:
+        return redirect(url_for('order_book'))
+
+    return render_template('order_confirm.html', developer='Liam Raehsler', order_details=session['order_details'])
+
+
 
 @app.route("/logout")
 def logout():

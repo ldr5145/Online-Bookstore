@@ -320,7 +320,7 @@ class db_operations:
         self.cursor.execute("SELECT ISBN, title, price, stock FROM book WHERE ISBN=%s", (info['ISBN'],))
         for book in self.cursor.fetchall():
             return True, float(book[2]), book[1], book[3]
-        return False, 0, 0
+        return False, 0, 0, 0
 
     def find_books(self, query, filters, dates, order):
         """Given a query entered by the user, return all books that match the search. Results must

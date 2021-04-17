@@ -39,6 +39,10 @@
         &nbsp;
         <input type="submit" id="add_to_cart" name="add_to_cart" value="Add to cart">
     </form>
+    {% for e in error_message %}
+        <br><br>
+        <error_label>{{ e }}</error_label>
+    {% endfor %}
 </div>
 <script type="text/javascript">
     function numberEntered() {
