@@ -1,0 +1,68 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+    #checkout{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+    #clear{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+    #keep_shopping{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+{% endblock %}
+{% block title %}My Cart{% endblock %}
+{% block head_title %}My Cart{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form" style="width:800px">
+    <form id="cart_form" method="post">
+         <div id="cart_div">
+             <label>Cart Contents:</label>
+            <table style="width:100%; border:0px;">
+               {% for i in range(cart.book|length) %}
+               {% if loop.first %}
+               <tr>
+                   <th>Title</th>
+                   <th>Author(s)</th>
+                   <th>Quantity</th>
+               </tr>
+               {% endif %}
+               <tr>
+                   <td>{{ cart.book[i][1] }}</td>
+                   <td>
+                       {% for auth in cart.authors[i] %}
+                           {{ auth }}
+                           {% if not loop.last %}
+                                ,
+                           {% endif %}
+                       {% endfor %}
+                   </td>
+                   <td align="right">{{ cart.quantity[i] }}</td>
+               </tr>
+               {% endfor %}
+           </table>
+        </div>
+        <div id="submit_div" style="float:right">
+            <input type="submit" id="checkout" name="checkout" value="Check out">
+            <input type="submit" id="clear" name="clear" value="Empty Cart">
+            <input type="submit" id="keep_shopping" name="keep_shopping" value="Keep Shopping">
+        </div>
+    </form>
+</div>
+{% endblock %}

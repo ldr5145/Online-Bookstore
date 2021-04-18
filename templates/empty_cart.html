@@ -1,0 +1,12 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+{% endblock %}
+{% block title %}My Cart{% endblock %}
+{% block head_title %}My Cart{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <label>Your cart is empty. Order some books!</label>
+</div>
+{% endblock %}

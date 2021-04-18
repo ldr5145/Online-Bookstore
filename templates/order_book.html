@@ -30,10 +30,10 @@
             </a></label>
         <br><br>
         <label for="ISBN">ISBN:</label>
-        <input style="width:100px" type="text" id="ISBN" name="ISBN" minlength="13" maxlength="13" oninput="numberEntered()">
+        <input style="width:100px" type="text" id="ISBN" name="ISBN" minlength="13" maxlength="13" oninput="numberEntered()" required>
         &nbsp;
         <label for="quantity">Quantity:</label>
-        <input style="width:37px" type="number" id="quantity" name="quantity" min="1" max="999" disabled>
+        <input style="width:37px" type="number" id="quantity" name="quantity" min="1" max="999" disabled required>
         <br><br>
         <input type="submit" id="order" name="order" value="Order now!">
         &nbsp;
