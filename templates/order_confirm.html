@@ -9,7 +9,7 @@
 <div class="main_form" style="width:800px">
     <form id="confirm_form">
          <div id="results_div">
-            <table style="width:100%">
+            <table style="width:100%; border:0px;">
                {% for i in range(posts.book|length) %}
                {% if loop.first %}
                <tr>
@@ -17,6 +17,7 @@
                    <th>Author(s)</th>
                    <th>Quantity</th>
                    <th>Price</th>
+                   <th>Totals</th>
                </tr>
                {% endif %}
                <tr>
@@ -29,10 +30,18 @@
                            {% endif %}
                        {% endfor %}
                    </td>
-                   <td>{{ posts.quantity[i] }}</td>
-                   <td>{{ posts.book[i][7] }}</td>
+                   <td align="right">{{ posts.quantity[i] }}</td>
+                   <td align="right">${{ posts.book[i][7] }}</td>
+                   <td align="right">${{ posts.cumulative_price[i] }}</td>
                </tr>
                {% endfor %}
+                <tr>
+                    <td style="border:0px"></td>
+                    <td style="border:0px"></td>
+                    <td style="border:0px"></td>
+                    <td style="border:0px"></td>
+                    <td align="right" style="font-weight:bold;">${{ posts.total_price }}</td>
+                </tr>
            </table>
         </div>
     </form>
