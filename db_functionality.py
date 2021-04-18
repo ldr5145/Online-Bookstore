@@ -391,6 +391,7 @@ class db_operations:
         self.cursor.execute("SELECT * FROM book WHERE ISBN=%s", (isbn,))
         books = self.cursor.fetchall()
         for book in books:
+            print("book is ", book)
             authors = []
             self.cursor.execute("""SELECT name FROM Author A, Wrote W, Book B WHERE A.ID = W.authorID AND
             W.ISBN = B.ISBN AND B.ISBN = %s""", (isbn,))

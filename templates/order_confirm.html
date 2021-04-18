@@ -1,0 +1,40 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+{% endblock %}
+{% block title %}Confirm your order{% endblock %}
+{% block head_title %}Confirm Your Order{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form" style="width:800px">
+    <form id="confirm_form">
+         <div id="results_div">
+            <table style="width:100%">
+               {% for i in range(posts.book|length) %}
+               {% if loop.first %}
+               <tr>
+                   <th>Title</th>
+                   <th>Author(s)</th>
+                   <th>Quantity</th>
+                   <th>Price</th>
+               </tr>
+               {% endif %}
+               <tr>
+                   <td>{{ posts.book[i][1] }}</td>
+                   <td>
+                       {% for auth in posts.authors[i] %}
+                           {{ auth }}
+                           {% if not loop.last %}
+                                ,
+                           {% endif %}
+                       {% endfor %}
+                   </td>
+                   <td>{{ posts.quantity[i] }}</td>
+                   <td>{{ posts.book[i][7] }}</td>
+               </tr>
+               {% endfor %}
+           </table>
+        </div>
+    </form>
+</div>
+{% endblock %}

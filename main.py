@@ -2,6 +2,7 @@ import mysql.connector as sqlcon
 import db_functionality as db_func
 import data_management as data_manage
 from flask import Flask, request, render_template, redirect, session,url_for
+from decimal import Decimal as decimal
 
 db_ops = db_func.db_operations('projectdb')
 app = Flask(__name__)
@@ -137,10 +138,22 @@ def confirm_order():
         return redirect(url_for('login'))
     if 'order_details' not in session:
         return redirect(url_for('order_book'))
-
-    return render_template('order_confirm.html', developer='Liam Raehsler', order_details=session['order_details'])
-
-
+    posts = {'book': [], 'authors': [], 'quantity': session['order_details']['quantity'], 'loginID': session['username'],
+             'cumulative_price': [], 'total_price':0.00}
+    total_price = 0.0
+    for book in session['order_details']['ISBN']:
+        book_info, author_info = db_ops.get_single_book_info(book)
+        posts['book'].append(book_info)
+        posts['authors'].append(author_info)
+    for i in range(len(posts['quantity'])):
+        cumulative_price = int(posts['quantity'][i])*float(posts['book'][i][7])
+        cum_price_str = str("%.2f" % cumulative_price)
+        posts['cumulative_price'].append(cum_price_str)
+        total_price += cumulative_price
+    posts['total_price'] = str("%.2f" % total_price)
+    print(posts)
+    session.pop('order_details', None)
+    return render_template('order_confirm.html', developer='Liam Raehsler', posts=posts)
 
 @app.route("/logout")
 def logout():
