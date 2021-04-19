@@ -1,6 +1,30 @@
 {% extends "base_with_sidebar.html" %}
 {% block style %}
 {{ super() }}
+    #rate{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+    #return{
+        width: 120px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+    #order{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
 {% endblock %}
 {% block title %}Info about {{ posts.book[1] }}{% endblock %}
 {% block head_title %} {{ posts.book[1] }}{% endblock %}
@@ -22,6 +46,8 @@ By:
 {% block submit_form %}
 <div class="main_form">
     <div id="book_info">
+        <label>Average rating: {{ posts.book[9] }}</label>
+        <br><br>
         <label>ISBN: {{ posts.book[0] }}</label>
         <br><br>
         <label>Publisher: {{ posts.book[2] }}</label>
@@ -40,6 +66,8 @@ By:
     </div>
     <div id="action_div" align="right">
         <form id="action_form" method="post">
+            <input type="submit" id="rate" name="rate" value="Rate this Book">
+            &nbsp;
             <input type="hidden" id="ISBN" name="ISBN" value="{{ posts.book[0] }}">
             <input type="submit" id="return" name="return" value="Return to Catalog">
             &nbsp;

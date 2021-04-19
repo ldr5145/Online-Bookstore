@@ -1,0 +1,40 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+    #confirm{
+        width: 120px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+    #cancel{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+{% endblock %}
+{% block title %}Rate a book{% endblock %}
+{% block head_title %}Rate a book{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form" style="width:650px">
+    <div id="action_div">
+        <form id="action_form" method="post">
+            <label>Book score (0-10, 0=horrible, 10=masterpiece):</label>
+            <input style="width:37px" type="number" id="user_rating" name="user_rating" min="0" max="10" step="0.5" required>
+            <br><br>
+            <label>Provide the reasoning for your rating below (optional):</label>
+            <br>
+            <textarea id="message" name="message" rows="20" cols="80" warp="hard"></textarea>
+            <input type="submit" id="confirm" name="confirm" value="Submit review">
+            &nbsp;
+            <input type="submit" id="cancel" name="cancel" value="Cancel">
+        </form>
+    </div>
+</div>
+{% endblock %}

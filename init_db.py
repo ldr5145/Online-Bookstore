@@ -1,9 +1,6 @@
 import mysql.connector as sqlcon
 import db_functionality as db_func
 import data_management as data_manage
-from flask import session
-
-session.clear()
 
 dbops = db_func.db_operations("projectdb")
 dbops.init_db()

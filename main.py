@@ -101,6 +101,9 @@ def display_book():
         elif 'order' in request.form:
             session['ISBN'] = request.form['ISBN']
             return redirect(url_for('order_book'))
+        elif 'rate' in request.form:
+            session['ISBN'] = request.form['ISBN']
+            return redirect(url_for('rate_book'))
         else:
             book, authors = db_ops.get_single_book_info(request.form['ISBN'])
             posts = {'book': book, 'authors': authors}
@@ -108,6 +111,15 @@ def display_book():
         return redirect(url_for('browse'))
     return render_template('book_info.html', developer='Liam Raehsler', posts=posts)
 
+@app.route("/index/book_info/rate_book", methods=["POST","GET"])
+def rate_book():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if 'ISBN' not in session:
+        return redirect(url_for('browse'))
+    if request.method == "POST":
+        pass
+    return render_template("rate_book.html", developer='Liam Raehsler')
 
 @app.route("/index/order_book", methods=["POST", "GET"])
 def order_book():
@@ -118,7 +130,6 @@ def order_book():
     if 'username' not in session:
         return redirect(url_for('login'))
     if 'ISBN' in session:
-        print(session)
         posts['ISBN'] = session['ISBN']
         session.pop('ISBN', None)
         return render_template('order_book.html', developer='Liam Raehsler', posts=posts)
@@ -160,7 +171,6 @@ def order_book():
                         error = ['That book is currently sold out, please try again later.']
             else:
                 error = ['That book is not in our database, please try again.']
-    print(posts)
     return render_template('order_book.html', developer='Liam Raehsler', error_message=error, posts=posts)
 
 

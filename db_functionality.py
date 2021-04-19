@@ -39,6 +39,8 @@ class db_operations:
             stock SMALLINT CHECK(stock >= 0),
             price DECIMAL(5,2),
             subject VARCHAR(100),
+            avg_rating DECIMAL(4,2) CHECK(avg_rating <= 5.00),
+            num_ratings INT,
             PRIMARY KEY (ISBN))""")
 
         # Author
@@ -187,10 +189,10 @@ class db_operations:
             try:
                 date = datetime.datetime.strptime(book[7], '%m/%d/%Y').date()
                 t = (book[0], book[1], book[8], book[3], date,
-                     int(book[4]), initial_stock, book[9])
+                     int(book[4]), initial_stock, book[9], float(book[2]*2), int(book[5]))
                 self.cursor.execute(
-                    """INSERT INTO book (ISBN, title, publisher, lang, publicationDate, pageCount, stock, price) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", t)
+                    """INSERT INTO book (ISBN, title, publisher, lang, publicationDate, pageCount, stock, price, 
+                    avg_rating, num_ratings) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", t)
             except Exception as e:
                 count = count+1
                 failed_books.append(t[1])
@@ -351,7 +353,7 @@ class db_operations:
             if query_sections:
                 query_sections += ' UNION '
             query_sections += """SELECT B.ISBN, title, publisher, B.lang, publicationDate, pageCount, 
-            stock, B.price, B.subject FROM book B, author A, wrote W WHERE W.ISBN = B.ISBN 
+            stock, B.price, B.subject, avg_rating, num_ratings FROM book B, author A, wrote W WHERE W.ISBN = B.ISBN 
             AND W.authorID = A.ID AND A.name LIKE %s"""
             args.append('%' + query + '%')
 
