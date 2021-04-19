@@ -1,0 +1,13 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+{% endblock %}
+{% block title %}Order Successful! {% endblock %}
+{% block head_title %}Order confirmation{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <label>Your order was successful! To see the order details, click
+        <a href="/index/my_orders">here</a> to go to your orders.</label>
+</div>
+{% endblock %}

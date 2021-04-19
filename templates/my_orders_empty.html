@@ -1,0 +1,12 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+{% endblock %}
+{% block title %}My Orders{% endblock %}
+{% block head_title %}My Orders{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <label>You have not made any orders yet. Click <a href="/index/order_books">here</a> to start shopping!</label>
+</div>
+{% endblock %}

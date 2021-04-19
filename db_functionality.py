@@ -107,7 +107,7 @@ class db_operations:
         # OrderLog
         self.cursor.execute(
             """CREATE TABLE OrderLog (
-            orderNumber INT,
+            orderNumber INT AUTO_INCREMENT,
             loginID VARCHAR(30) NOT NULL,
             orderDate DATE,
             PRIMARY KEY (orderNumber),
@@ -196,7 +196,8 @@ class db_operations:
                 failed_books.append(t[1])
         if failed_books:
             print("\nSome books were not added to the database because they had an invalid format:")
-            print(failed_books, sep='\n')
+            for book in failed_books:
+                print(book)
         print("\nTotal books not included in database: ", count)
         self.cursor.execute(
             """SELECT COUNT(*)
@@ -388,6 +389,7 @@ class db_operations:
         return results
 
     def get_single_book_info(self, isbn):
+        """Given an ISBN number of a book, retrieve the entire tuple of that book as well as the authors."""
         self.cursor.execute("SELECT * FROM book WHERE ISBN=%s", (isbn,))
         books = self.cursor.fetchall()
         for book in books:
@@ -397,6 +399,44 @@ class db_operations:
             for auth in self.cursor.fetchall():
                 authors.append(auth[0])
         return book, authors
+
+    def order_book(self, order_details):
+        """Given the order details of a certain order, place the order. Need to add the order to the order log and
+        remove the books ordered from stock."""
+        order_date = datetime.date.today()
+        self.cursor.execute("INSERT INTO orderlog (loginID, orderDate) VALUES (%s, %s)",
+                            (order_details['loginID'], order_date))
+        order_id = self.cursor.lastrowid
+        for i in range(len(order_details['ISBN'])):
+            self.cursor.execute("INSERT INTO productof Values (%s, %s, %s)",
+                                (order_details['ISBN'][i], order_id, order_details['quantity'][i]))
+            self.cursor.execute("UPDATE book SET stock=stock-%s WHERE ISBN=%s",
+                                (order_details['quantity'][i], order_details['ISBN'][i]))
+        self.db.commit()
+        return True
+
+    def get_user_orders(self, loginID):
+        """Given a unique login ID, find the details about all of the orders associated with that user and return in a
+        single data structure. Note: only need the order number, title/quantity of books, and date. Order results by
+        date from newest to oldest."""
+        order_details = {}
+        self.cursor.execute("""SELECT orderNumber, orderDate FROM orderlog WHERE loginID=%s 
+        ORDER BY orderDate DESC, orderNumber DESC""", (loginID,))
+        for order in self.cursor.fetchall():
+            order_details[str(order[0])] = {'title': [], 'quantity': []}
+            # this line only needs to execute once, but its easier to do it like this.
+            order_details[str(order[0])]['date'] = order[1]
+            self.cursor.execute("""SELECT ISBN FROM orderlog O INNER JOIN productof P ON O.orderNumber = P.orderNumber
+            WHERE O.orderNumber=%s""", (order[0],))
+            for book in self.cursor.fetchall():
+                self.cursor.execute("""SELECT title, quantity FROM book B, productof P, orderlog O WHERE P.ISBN=%s
+                AND P.orderNumber = O.orderNumber AND P.ISBN = B.ISBN AND O.orderNumber = %s""", (book[0], order[0]))
+                for details in self.cursor.fetchall():
+                    title = details[0]
+                    quantity = details[1]
+                    order_details[str(order[0])]['title'].append(title)
+                    order_details[str(order[0])]['quantity'].append(quantity)
+        return order_details
 
     def end_session(self):
         self.db.close()

@@ -8,7 +8,6 @@ db_ops = db_func.db_operations('projectdb')
 app = Flask(__name__)
 app.secret_key = 'top_secret_key'
 
-
 @app.route("/", methods=["POST", "GET"])
 def login():
     creds = {'loginID': '', 'password': ''}
@@ -67,8 +66,7 @@ def new_account():
 def welcome_page():
     if 'username' not in session:
         return redirect(url_for('login'))
-    if request.method == "POST":
-        print(request.form)
+
     return render_template('index.html', user=session['username'], developer='Liam Raehsler')
 
 
@@ -88,7 +86,6 @@ def browse():
 
         posts['results'] = db_ops.find_books(request.form['query'], posts['filters'],
                                              [posts['startDate'], posts['endDate']], posts['order'])
-        print(posts['results'])
 
     return render_template('browse_books.html', developer='Liam Raehsler', posts=posts)
 
@@ -98,13 +95,15 @@ def display_book():
     posts = {'book': (), 'authors': []}
     if 'username' not in session:
         return redirect(url_for('login'))
-
     if request.method == "POST":
-        print(request.form)
-        book, authors = db_ops.get_single_book_info(request.form['ISBN'])
-        posts['book'] = book
-        posts['authors'] = authors
-
+        if 'return' in request.form:
+            return redirect(url_for('browse'))
+        elif 'order' in request.form:
+            session['ISBN'] = request.form['ISBN']
+            return redirect(url_for('order_book'))
+        else:
+            book, authors = db_ops.get_single_book_info(request.form['ISBN'])
+            posts = {'book': book, 'authors': authors}
     if not posts['book']:
         return redirect(url_for('browse'))
     return render_template('book_info.html', developer='Liam Raehsler', posts=posts)
@@ -112,10 +111,17 @@ def display_book():
 
 @app.route("/index/order_book", methods=["POST", "GET"])
 def order_book():
+    session.pop('order_details', None)
     order_info = {'ISBN': '', 'quantity': ''}
     error = {}
+    posts = {'ISBN':''}
     if 'username' not in session:
         return redirect(url_for('login'))
+    if 'ISBN' in session:
+        print(session)
+        posts['ISBN'] = session['ISBN']
+        session.pop('ISBN', None)
+        return render_template('order_book.html', developer='Liam Raehsler', posts=posts)
     if request.method == "POST":
         order_info['ISBN'] = request.form['ISBN']
         order_info['quantity'] = request.form['quantity']
@@ -124,7 +130,6 @@ def order_book():
         else:
             valid, price, title, stock = db_ops.valid_book(order_info)
             if valid:
-                print(request.form)
                 if stock > int(order_info['quantity']):
                     if 'order' in request.form:
                         session['order_details'] = {'ISBN': [order_info['ISBN']], 'quantity': [order_info['quantity']],
@@ -139,15 +144,12 @@ def order_book():
                                 cart['quantity'][session['cart']['ISBN'].index(order_info['ISBN'])] = str(val)
                                 session['cart'] = cart
                             else:
-                                print("before append: ", session['cart'], order_info['ISBN'])
                                 cart['ISBN'].extend([order_info['ISBN']])
                                 cart['quantity'].extend([order_info['quantity']])
                                 session['cart'] = cart
-                                print("after append: ", session['cart'])
                         else:
                             session['cart'] = {'ISBN': [order_info['ISBN']], 'quantity': [order_info['quantity']],
                                                'loginID': session['username']}
-                        print(session)
                         return redirect(url_for('cart_confirm'))
 
                 else:
@@ -158,7 +160,8 @@ def order_book():
                         error = ['That book is currently sold out, please try again later.']
             else:
                 error = ['That book is not in our database, please try again.']
-    return render_template('order_book.html', developer='Liam Raehsler', error_message=error)
+    print(posts)
+    return render_template('order_book.html', developer='Liam Raehsler', error_message=error, posts=posts)
 
 
 @app.route("/index/order_confirm", methods=["POST", "GET"])
@@ -167,6 +170,19 @@ def confirm_order():
         return redirect(url_for('login'))
     if 'order_details' not in session:
         return redirect(url_for('order_book'))
+    current_order = session['order_details']
+    if request.method == "POST":
+        if 'confirm' in request.form:
+            db_ops.order_book(session['order_details'])
+            session.pop('order_details', None)
+            session.pop('cart', None)
+            return redirect(url_for('order_successful'))
+        elif 'cancel' in request.form:
+            session.pop('order_details', None)
+            return redirect(url_for('cart_confirm'))
+        else:
+            session.pop('order_details', None)
+            return redirect(url_for('order_book'))
     posts = {'book': [], 'authors': [], 'quantity': session['order_details']['quantity'],
              'loginID': session['username'],
              'cumulative_price': [], 'total_price': 0.00}
@@ -181,19 +197,33 @@ def confirm_order():
         posts['cumulative_price'].append(cum_price_str)
         total_price += cumulative_price
     posts['total_price'] = str("%.2f" % total_price)
-    print(posts)
-    session.pop('order_details', None)
     return render_template('order_confirm.html', developer='Liam Raehsler', posts=posts)
 
+@app.route("/index/order_confirm/successful")
+def order_successful():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('order_successful.html', developer='Liam Raehsler')
+
+@app.route("/index/my_orders", methods=["POST","GET"])
+def my_orders():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    posts = db_ops.get_user_orders(session['username'])
+    if not posts:
+        return render_template('my_orders_empty.html')
+    return render_template('my_orders.html', developer='Liam Raehsler', posts=posts)
 
 @app.route("/index/my_cart", methods=["POST", "GET"])
 def cart_confirm():
+    session.pop('order_details', None)
+    # FIX MISTAKE, cart stays if user does not press remember me and someone else signs in!!
     if 'username' not in session:
         return redirect(url_for('login'))
     if 'cart' not in session:
         return redirect(url_for('empty_cart'))
     if request.method == "POST":
-        print(request.form)
         if 'checkout' in request.form:
             session['order_details'] = {'ISBN': session['cart']['ISBN'], 'quantity': session['cart']['quantity'],
                                         'loginID': session['username']}

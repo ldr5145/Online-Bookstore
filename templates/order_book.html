@@ -30,14 +30,18 @@
             </a></label>
         <br><br>
         <label for="ISBN">ISBN:</label>
-        <input style="width:100px" type="text" id="ISBN" name="ISBN" minlength="13" maxlength="13" oninput="numberEntered()" required>
+        <input style="width:100px" type="text" id="ISBN" name="ISBN" minlength="13" maxlength="13"
+               oninput="numberEntered()" value="{{ posts.ISBN }}" required>
         &nbsp;
         <label for="quantity">Quantity:</label>
-        <input style="width:37px" type="number" id="quantity" name="quantity" min="1" max="999" disabled required>
+        <input style="width:37px" type="number" id="quantity" name="quantity" min="1" max="999"
+               {% if not posts.ISBN %}disabled{% endif %} required>
         <br><br>
-        <input type="submit" id="order" name="order" value="Order now!">
-        &nbsp;
-        <input type="submit" id="add_to_cart" name="add_to_cart" value="Add to cart">
+        <div id="new_div">
+            <input type="submit" id="order" name="order" value="Order now!">
+            &nbsp;
+            <input type="submit" id="add_to_cart" name="add_to_cart" value="Add to cart">
+        </div>
     </form>
     {% for e in error_message %}
         <br><br>

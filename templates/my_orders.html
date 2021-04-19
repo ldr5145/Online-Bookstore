@@ -1,0 +1,32 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+{% endblock %}
+{% block title %}My Orders{% endblock %}
+{% block head_title %}My Orders{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <form id="main_form">
+        <div id="results_div">
+            {% for order_number, details in posts.items() %}
+                <label>Order ID: {{ order_number }}. Date Processed: {{ details.date }}</label>
+                <br>
+            <table id="table{{ order_number }}">
+                <tr>
+                    <th>Title</th>
+                    <th>Quantity</th>
+                </tr>
+                {% for i in range(details.title|length) %}
+                    <tr>
+                        <td>{{ details.title[i] }}</td>
+                        <td align="right">{{ details.quantity[i] }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <br>
+            {% endfor %}
+        </div>
+    </form>
+</div>
+{% endblock %}

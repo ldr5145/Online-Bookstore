@@ -4,10 +4,47 @@
 {% endblock %}
 {% block title %}Info about {{ posts.book[1] }}{% endblock %}
 {% block head_title %} {{ posts.book[1] }}{% endblock %}
-{% block dev_id %}{{ super() }}{% endblock %}
+{% block dev_id %}
+<h2 style="text-align:center;">
+By:
+{% for auth in posts.authors %}
+    {% if loop.last %}
+        and
+    {% endif %}
+    {{ auth }}
+    {% if loop.index < (posts.authors|length)-1 %}
+        ,
+    {% endif %}
+{% endfor %}
+</h2>
+{{ super() }}
+{% endblock %}
 {% block submit_form %}
 <div class="main_form">
-    <label>This needs to contain book, title, authors, publisher, publish date, price, stock, average rating,
-    average rating among trusted people, subject, genre, etc...</label>
+    <div id="book_info">
+        <label>ISBN: {{ posts.book[0] }}</label>
+        <br><br>
+        <label>Publisher: {{ posts.book[2] }}</label>
+        <br><br>
+        <label>Date Published: {{ posts.book[4] }}</label>
+        <br><br>
+        <label>Language: {{ posts.book[3] }}</label>
+        <br><br>
+        <label>Number of Pages: {{ posts.book[5] }}</label>
+        <br><br>
+        <label>Current stock available: {{ posts.book[6] }}</label>
+        <br><br>
+        <label>Genre: {{ posts.book[8] }}</label>
+        <br><br>
+        <label>Price: ${{ posts.book[7] }}</label>
+    </div>
+    <div id="action_div" align="right">
+        <form id="action_form" method="post">
+            <input type="hidden" id="ISBN" name="ISBN" value="{{ posts.book[0] }}">
+            <input type="submit" id="return" name="return" value="Return to Catalog">
+            &nbsp;
+            <input type="submit" id="order" name="order" value="Buy this Book">
+        </form>
+    </div>
 </div>
 {% endblock %}

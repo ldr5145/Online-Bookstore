@@ -1,13 +1,37 @@
 {% extends "base_with_sidebar.html" %}
 {% block style %}
 {{ super() }}
+    #confirm{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+    #cancel{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+    #keep_shopping{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
 {% endblock %}
 {% block title %}Confirm your order{% endblock %}
 {% block head_title %}Confirm Your Order{% endblock %}
 {% block dev_id %}{{ super() }}{% endblock %}
 {% block submit_form %}
 <div class="main_form" style="width:800px">
-    <form id="confirm_form">
+    <form id="confirm_form" method="post">
          <div id="results_div">
             <table style="width:100%; border:0px;">
                {% for i in range(posts.book|length) %}
@@ -43,6 +67,11 @@
                     <td align="right" style="font-weight:bold;">${{ posts.total_price }}</td>
                 </tr>
            </table>
+        </div>
+        <div id="actions_div" style="float:right">
+            <input type="submit" id="confirm" name="confirm" value="Complete order">
+            <input type="submit" id="cancel" name="cancel" value="Return to Cart">
+            <input type="submit" id="keep_shopping" name="keep_shopping" value="Keep Shopping">
         </div>
     </form>
 </div>
