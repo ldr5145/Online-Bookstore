@@ -80,17 +80,19 @@ By:
             {% endif %}
             <br><br>
             <form method="post" class="inline">
-                <button type="submit" name="Very useful" value="{{ comment }}" class="button">
-                  Very Useful
-                </button>
-                &nbsp;
-                <button type="submit" name="Useful" value="{{ comment }}" class="button">
-                  Useful
-                </button>
-                &nbsp;
-                <button type="submit" name="Useless" value="{{ comment }}" class="button">
-                  Useless
-                </button>
+                {% if comment[2] != posts.loginID %}
+                    <button type="submit" name="Very useful" value="{{ comment }}" class="button">
+                      Very Useful
+                    </button>
+                    &nbsp;
+                    <button type="submit" name="Useful" value="{{ comment }}" class="button">
+                      Useful
+                    </button>
+                    &nbsp;
+                    <button type="submit" name="Useless" value="{{ comment }}" class="button">
+                      Useless
+                    </button>
+                {% endif %}
            </form>
         </div>
         <br>
