@@ -5,6 +5,7 @@ from flask import Flask, request, render_template, redirect, session, url_for
 from decimal import Decimal as decimal
 
 # Remember to set FLASK_APP to main if running for the first time.
+# if reinitializing database, visit logout page ("127.0.0.1/logout") to clear session (might improve this)
 
 db_ops = db_func.db_operations('projectdb')
 app = Flask(__name__)
@@ -122,7 +123,19 @@ def rate_book():
     if 'ISBN' not in session:
         return redirect(url_for('browse'))
     if request.method == "POST":
-        pass
+        print(request.form)
+        if 'confirm' in request.form:
+            print(session['ISBN'])
+            comment_info = {'score': request.form['user_rating'], 'ISBN': session['ISBN'],
+                            'loginID': session['username'], 'message': ''}
+            if 'message' in request.form:
+                comment_info['message'] = request.form['message']
+            session.pop('ISBN', None)
+            exit_code = db_ops.add_comment(comment_info)
+            if exit_code:
+                print("New comment created.")
+            else:
+                print("Comment updated.")
     return render_template("rate_book.html", developer='Liam Raehsler')
 
 @app.route("/index/order_book", methods=["POST", "GET"])

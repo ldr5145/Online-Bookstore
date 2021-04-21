@@ -42,8 +42,9 @@ class db_operations:
             stock SMALLINT CHECK(stock >= 0),
             price DECIMAL(5,2),
             subject VARCHAR(100),
-            avg_rating DECIMAL(4,2) CHECK(avg_rating <= 5.00),
-            num_ratings INT,
+            avg_rating DECIMAL(4,2) CHECK(avg_rating <= 10.00),
+            total_rating_score INT DEFAULT 0,
+            num_ratings INT DEFAULT 0,
             PRIMARY KEY (ISBN))""")
 
         # Author
@@ -98,13 +99,13 @@ class db_operations:
         # Comment
         self.cursor.execute(
             """CREATE TABLE Comment (
-            commentID INT,
+            commentID INT AUTO_INCREMENT,
             ISBN VARCHAR(13) NOT NULL,
             loginID VARCHAR(30) NOT NULL,
             score TINYINT NOT NULL,
             message TEXT,
-            usefulness FLOAT,
-            commentDate DATE,
+            usefulness DECIMAL(3,2) DEFAULT 1.00,
+            commentDate DATETIME,
             PRIMARY KEY (commentID),
             FOREIGN KEY (ISBN) REFERENCES Book(ISBN)
             ON UPDATE RESTRICT ON DELETE CASCADE,
@@ -194,10 +195,10 @@ class db_operations:
             try:
                 date = datetime.datetime.strptime(book[7], '%m/%d/%Y').date()
                 t = (book[0], book[1], book[8], book[3], date,
-                     int(book[4]), initial_stock, book[9], 0)
+                     int(book[4]), initial_stock, book[9])
                 self.cursor.execute(
-                    """INSERT INTO book (ISBN, title, publisher, lang, publicationDate, pageCount, stock, price, 
-                    num_ratings) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""", t)
+                    """INSERT INTO book (ISBN, title, publisher, lang, publicationDate, pageCount, stock, price) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", t)
             except Exception as e:
                 count = count + 1
                 failed_books.append(t[1])
@@ -377,8 +378,8 @@ class db_operations:
             if query_sections:
                 query_sections += ' UNION '
             query_sections += """SELECT B.ISBN, title, publisher, B.lang, publicationDate, pageCount, 
-            stock, B.price, B.subject, avg_rating, num_ratings FROM book B, author A, wrote W WHERE W.ISBN = B.ISBN 
-            AND W.authorID = A.ID AND A.name LIKE %s"""
+            stock, B.price, B.subject, avg_rating, total_rating_score, num_ratings FROM book B, author A, wrote W 
+            WHERE W.ISBN = B.ISBN AND W.authorID = A.ID AND A.name LIKE %s"""
             args.append('%' + query + '%')
 
         if 'lang_filt' in filters:
@@ -463,6 +464,35 @@ class db_operations:
                     order_details[str(order[0])]['title'].append(title)
                     order_details[str(order[0])]['quantity'].append(quantity)
         return order_details
+
+    def add_comment(self, comment_info):
+        """Add a new comment from a particular user to a particular book. Since only one comment per user per
+        book is allowed, this function first checks if this user has already commented on the book. If not, can just
+        add a new comment. Otherwise, update the original comment since users are allowed to update their own
+        comments."""
+        self.cursor.execute("""SELECT commentID, score FROM comment WHERE loginID = %s AND ISBN = %s""",
+                            (comment_info['loginID'], comment_info['ISBN']))
+        result = self.cursor.fetchall()
+        if result:
+            # found a comment, need to update it
+            self.cursor.execute("""UPDATE comment SET score=%s, message=%s WHERE commentID=%s""",
+                                (comment_info['score'], comment_info['message'], result[0][0]))
+            self.cursor.execute("""UPDATE book SET total_rating_score=total_rating_score+%s WHERE ISBN=%s""",
+                                (int(comment_info['score'])-result[0][1], comment_info['ISBN']))
+            return_code = 0
+        else:
+            # no comment found, create a new one
+            self.cursor.execute("""INSERT INTO comment (ISBN, loginID, score, message, commentDate)
+             VALUES (%s,%s,%s,%s,%s)""", (comment_info['ISBN'], comment_info['loginID'], comment_info['score'],
+                                          comment_info['message'], datetime.datetime.now()))
+            self.cursor.execute("""UPDATE book SET total_rating_score = total_rating_score+%s, 
+            num_ratings = num_ratings+1 WHERE ISBN = %s""", (comment_info['score'], comment_info['ISBN']))
+            return_code = 1
+        self.db.commit()
+        self.cursor.execute("""UPDATE book SET avg_rating = total_rating_score / num_ratings WHERE 
+                            ISBN=%s""", (comment_info['ISBN'],))
+        self.db.commit()
+        return return_code
 
     def end_session(self):
         self.db.close()
