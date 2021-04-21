@@ -98,12 +98,13 @@ def browse():
 
 @app.route("/index/book_info", methods=["POST", "GET"])
 def display_book():
-    posts = {'book': (), 'authors': []}
+    posts = {'book': (), 'authors': [], 'comments': [], 'loginID': ''}
     if 'username' not in session:
         return redirect(url_for('login'))
     if 'ISBN' in session:
         book, authors = db_ops.get_single_book_info(session['ISBN'])
-        posts = {'book': book, 'authors': authors}
+        posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(session['ISBN']),
+                 'loginID': session['username']}
     if request.method == "POST":
         print(request.form)
         if 'return' in request.form:
@@ -114,9 +115,16 @@ def display_book():
         elif 'rate' in request.form:
             session['ISBN'] = request.form['ISBN']
             return redirect(url_for('rate_book'))
+        elif 'Very useful' in request.form:
+            db_ops.update_comment_score(session['username'], request.form['Very useful'][1], 'veryUseful')
+        elif 'Useful' in request.form:
+            db_ops.update_comment_score(session['username'], request.form['Useful'][1], 'useful')
+        elif 'Useless' in request.form:
+            db_ops.update_comment_score(session['username'], request.form['Useless'][1], 'useless')
         else:
             book, authors = db_ops.get_single_book_info(request.form['ISBN'])
-            posts = {'book': book, 'authors': authors}
+            posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(request.form['ISBN']),
+                     'loginID': session['username']}
     if not posts['book']:
         return redirect(url_for('browse'))
     return render_template('book_info.html', developer='Liam Raehsler', posts=posts)
@@ -135,12 +143,12 @@ def rate_book():
                             'loginID': session['username'], 'message': ''}
             if 'message' in request.form:
                 comment_info['message'] = request.form['message']
-            session.pop('ISBN', None)
             exit_code = db_ops.add_comment(comment_info)
             if exit_code:
                 print("New comment created.")
             else:
                 print("Comment updated.")
+            return redirect(url_for('display_book'))
         elif 'cancel' in request.form:
             return redirect(url_for('display_book'))
     return render_template("rate_book.html", developer='Liam Raehsler')

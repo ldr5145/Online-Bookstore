@@ -104,7 +104,9 @@ class db_operations:
             loginID VARCHAR(30) NOT NULL,
             score TINYINT NOT NULL,
             message TEXT,
-            usefulness DECIMAL(3,2) DEFAULT 1.00,
+            veryUseful INT DEFAULT 0,
+            useful INT DEFAULT 0,
+            useless INT DEFAULT 0,
             commentDate DATETIME,
             PRIMARY KEY (commentID),
             FOREIGN KEY (ISBN) REFERENCES Book(ISBN)
@@ -180,6 +182,20 @@ class db_operations:
             ON UPDATE CASCADE ON DELETE CASCADE,
             FOREIGN KEY (otherLoginID) REFERENCES CustomerCredentials(loginID)
             ON UPDATE CASCADE ON DELETE CASCADE)""")
+
+        # Rates
+        self.cursor.execute(
+            """CREATE TABLE Rates (
+            loginID VARCHAR(30),
+            commentID INT,
+            rating VARCHAR(10) NOT NULL,
+            PRIMARY KEY (loginID, commentID),
+            FOREIGN KEY (loginID) REFERENCES CustomerCredentials(loginID)
+            ON UPDATE CASCADE ON DELETE CASCADE,
+            FOREIGN KEY (commentID) REFERENCES Comment(commentID)
+            ON UPDATE RESTRICT ON DELETE CASCADE)"""
+        )
+
         print("done")
 
     def populate_tables(self, data_book, data_author, datafile_name, initial_stock=20):
@@ -478,7 +494,7 @@ class db_operations:
             self.cursor.execute("""UPDATE comment SET score=%s, message=%s WHERE commentID=%s""",
                                 (comment_info['score'], comment_info['message'], result[0][0]))
             self.cursor.execute("""UPDATE book SET total_rating_score=total_rating_score+%s WHERE ISBN=%s""",
-                                (int(comment_info['score'])-result[0][1], comment_info['ISBN']))
+                                (int(comment_info['score']) - result[0][1], comment_info['ISBN']))
             return_code = 0
         else:
             # no comment found, create a new one
@@ -493,6 +509,41 @@ class db_operations:
                             ISBN=%s""", (comment_info['ISBN'],))
         self.db.commit()
         return return_code
+
+    def get_comments(self, isbn):
+        """Given the ISBN of a book, get relevant information for all comments about that book."""
+        result = []
+        self.cursor.execute("""SELECT * FROM comment WHERE ISBN=%s""", (str(isbn),))
+        for comment in self.cursor.fetchall():
+            result.append(comment)
+        return result
+
+    def update_comment_score(self, loginID, commentID, attrib_name):
+        """Given a comment and a score, update the total usefulness score of the comment. Assuming this function will
+        never be called with a user trying to rate their own comment (since there will be other measures for
+        preventing that), so just need to check if the user has already rated this comment and is trying to change
+        their vote."""
+        self.cursor.execute("SELECT rating FROM rates WHERE loginID = %s AND commentID = %s", (loginID, commentID))
+        old_rating = self.cursor.fetchall()
+        if old_rating:
+            # This user already rated this comment. Change the rating.
+            if old_rating[0][0] == attrib_name:
+                # Remove the rating, because the user already voted for this.
+                self.cursor.execute("UPDATE comment SET " + attrib_name + "=" + attrib_name + "-1 WHERE commentID=%s",
+                                    (commentID,))
+                self.cursor.execute("""DELETE FROM rates WHERE loginID=%s AND commentID=%s""",
+                                    (loginID, commentID))
+            else:
+                self.cursor.execute("UPDATE comment SET " + old_rating[0][0]+ "=" + old_rating[0][0] + "-1, " + attrib_name
+                                    + "=" + attrib_name + "+1 WHERE commentID=%s""", (commentID,))
+                self.cursor.execute("""UPDATE rates SET rating=%s WHERE loginID=%s AND commentID=%s""",
+                                    (attrib_name, loginID, commentID))
+        else:
+            # New rating, just need to update one value and add a new rating tuple to rates
+            self.cursor.execute("UPDATE comment SET "+attrib_name+"="+attrib_name+"+1 WHERE commentID=%s",
+                                (commentID,))
+            self.cursor.execute("""INSERT INTO rates VALUES (%s,%s,%s)""", (loginID, commentID, attrib_name))
+        self.db.commit()
 
     def end_session(self):
         self.db.close()

@@ -1,7 +1,7 @@
 {% extends "base_with_sidebar.html" %}
 {% block style %}
 {{ super() }}
-    #rate{
+    .button{
         width: 100px;
         height: 30px;
         border: none;
@@ -9,21 +9,8 @@
         padding-left: 7px;
         color: blue;
     }
-    #return{
-        width: 120px;
-        height: 30px;
-        border: none;
-        border-radius: 17px;
-        padding-left: 7px;
-        color: blue;
-    }
-    #order{
-        width: 100px;
-        height: 30px;
-        border: none;
-        border-radius: 17px;
-        padding-left: 7px;
-        color: blue;
+    .inline {
+      display: inline;
     }
 {% endblock %}
 {% block title %}Info about {{ posts.book[1] }}{% endblock %}
@@ -45,6 +32,7 @@ By:
 {% endblock %}
 {% block submit_form %}
 <div class="main_form">
+    <h2 align="center"><u>Info about this book:</u></h2>
     <div id="book_info">
         <label>Average rating: {{ posts.book[9] }}</label>
         <br><br>
@@ -66,13 +54,47 @@ By:
     </div>
     <div id="action_div" align="right">
         <form id="action_form" method="post">
-            <input type="submit" id="rate" name="rate" value="Rate this Book">
+            <input type="submit" class="button" id="rate" name="rate" value="Rate this Book">
             &nbsp;
             <input type="hidden" id="ISBN" name="ISBN" value="{{ posts.book[0] }}">
-            <input type="submit" id="return" name="return" value="Return to Catalog">
+            <input type="submit" style="width:120px" class="button" id="return" name="return" value="Return to Catalog">
             &nbsp;
-            <input type="submit" id="order" name="order" value="Buy this Book">
+            <input type="submit" class="button" id="order" name="order" value="Buy this Book">
         </form>
     </div>
 </div>
+<br>
+{% if posts.book[11] > 0 %}
+    <div class="main_form">
+        <h2 align="center"><u>User Reviews:</u></h2>
+        {% for comment in posts.comments %}
+        <div style="border:1px solid black; padding:10px;">
+            <label><b>Username:</b> {{ comment[2] }}</label>
+            <br><br>
+            <label><b>Score:</b> {{ comment[3] }}</label>
+            <br><br>
+            {% if comment[4] %}
+            <label><b>Message:</b> <small_label>{{ comment[4] }}</small_label></label>
+            {% else %}
+                <label><b>Message:</b> No message given.</label>
+            {% endif %}
+            <br><br>
+            <form method="post" class="inline">
+                <button type="submit" name="Very useful" value="{{ comment }}" class="button">
+                  Very Useful
+                </button>
+                &nbsp;
+                <button type="submit" name="Useful" value="{{ comment }}" class="button">
+                  Useful
+                </button>
+                &nbsp;
+                <button type="submit" name="Useless" value="{{ comment }}" class="button">
+                  Useless
+                </button>
+           </form>
+        </div>
+        <br>
+        {% endfor %}
+    </div>
+{% endif %}
 {% endblock %}
