@@ -102,6 +102,7 @@ def display_book():
     if 'username' not in session:
         return redirect(url_for('login'))
     if 'ISBN' in session:
+        print("made it in ISBN")
         book, authors = db_ops.get_single_book_info(session['ISBN'])
         posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(session['ISBN']),
                  'loginID': session['username']}
@@ -116,6 +117,7 @@ def display_book():
             session['ISBN'] = request.form['ISBN']
             return redirect(url_for('rate_book'))
         elif 'Very useful' in request.form:
+            print(session)
             db_ops.update_comment_score(session['username'], request.form['Very useful'][1], 'veryUseful')
         elif 'Useful' in request.form:
             db_ops.update_comment_score(session['username'], request.form['Useful'][1], 'useful')
@@ -125,8 +127,12 @@ def display_book():
             book, authors = db_ops.get_single_book_info(request.form['ISBN'])
             posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(request.form['ISBN']),
                      'loginID': session['username']}
-    if not posts['book']:
+    if not posts['book'] and 'ISBN' not in session:
         return redirect(url_for('browse'))
+    else:
+        book, authors = db_ops.get_single_book_info(session['ISBN'])
+        posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(session['ISBN']),
+                 'loginID': session['username']}
     return render_template('book_info.html', developer='Liam Raehsler', posts=posts)
 
 @app.route("/index/book_info/rate_book", methods=["POST","GET"])

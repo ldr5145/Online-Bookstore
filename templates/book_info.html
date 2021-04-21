@@ -80,6 +80,12 @@ By:
             {% endif %}
             <br><br>
             <form method="post" class="inline">
+                <label style="font-size:15px; color:Red; width:120px;">Very Useful: {{ comment[5] }}</label>
+                <br>
+                <label style="font-size:15px; color:Red; width:120px">Useful: {{ comment[6] }}</label>
+                <br>
+                <label style="font-size:15px; color:Red; width:120px">Useless: {{ comment[7] }}</label>
+                <br><br>
                 {% if comment[2] != posts.loginID %}
                     <button type="submit" name="Very useful" value="{{ comment }}" class="button">
                       Very Useful
