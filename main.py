@@ -78,6 +78,7 @@ def welcome_page():
 @app.route("/index/catalog", methods=["POST", "GET"])
 def browse():
     posts = {'results': {}, 'filters': {}, 'startDate': '', 'endDate': '', 'order': '0'}
+    session.pop('ISBN', None)
     if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == "POST":
@@ -100,7 +101,11 @@ def display_book():
     posts = {'book': (), 'authors': []}
     if 'username' not in session:
         return redirect(url_for('login'))
+    if 'ISBN' in session:
+        book, authors = db_ops.get_single_book_info(session['ISBN'])
+        posts = {'book': book, 'authors': authors}
     if request.method == "POST":
+        print(request.form)
         if 'return' in request.form:
             return redirect(url_for('browse'))
         elif 'order' in request.form:
@@ -136,6 +141,8 @@ def rate_book():
                 print("New comment created.")
             else:
                 print("Comment updated.")
+        elif 'cancel' in request.form:
+            return redirect(url_for('display_book'))
     return render_template("rate_book.html", developer='Liam Raehsler')
 
 @app.route("/index/order_book", methods=["POST", "GET"])

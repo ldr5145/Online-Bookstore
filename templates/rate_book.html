@@ -33,8 +33,13 @@
             <textarea id="message" name="message" rows="20" cols="80" warp="hard"></textarea>
             <input type="submit" id="confirm" name="confirm" value="Submit review">
             &nbsp;
-            <input type="submit" id="cancel" name="cancel" value="Cancel">
+            <input type="submit" id="cancel" name="cancel" value="Cancel" onclick="fillField()">
         </form>
     </div>
 </div>
+<script>
+    function fillField() {
+        document.getElementById("user_rating").value=0;
+    }
+</script>
 {% endblock %}
