@@ -1,6 +1,9 @@
 import mysql.connector as sqlcon
 import datetime
 import re
+import os
+import hashlib
+
 
 class db_operations:
     def __init__(self, db_name):
@@ -64,7 +67,8 @@ class db_operations:
             loginID VARCHAR(30),
             firstName VARCHAR(50) NOT NULL,
             lastName VARCHAR(50) NOT NULL,
-            pass VARCHAR(50) NOT NULL,
+            salt VARBINARY(32) NOT NULL,
+            pass_key VARBINARY(32) NOT NULL,
             phone CHAR(10) NOT NULL,
             PRIMARY KEY (loginID),
             FOREIGN KEY (phone) REFERENCES CustomerPersonal(phone)
@@ -84,7 +88,8 @@ class db_operations:
             managerID INT UNIQUE NOT NULL AUTO_INCREMENT,
             firstName VARCHAR(50),
             lastName VARCHAR(50),
-            pass VARCHAR(50) NOT NULL,
+            salt VARBINARY(32) NOT NULL,
+            pass_key VARBINARY(32) NOT NULL,
             phone  CHAR(10) NOT NULL,
             PRIMARY KEY (loginID),
             FOREIGN KEY (phone) REFERENCES ManagerPersonal(phone)
@@ -189,12 +194,12 @@ class db_operations:
             try:
                 date = datetime.datetime.strptime(book[7], '%m/%d/%Y').date()
                 t = (book[0], book[1], book[8], book[3], date,
-                     int(book[4]), initial_stock, book[9], float(book[2]*2), int(book[5]))
+                     int(book[4]), initial_stock, book[9], 0.00, 0)
                 self.cursor.execute(
                     """INSERT INTO book (ISBN, title, publisher, lang, publicationDate, pageCount, stock, price, 
                     avg_rating, num_ratings) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", t)
             except Exception as e:
-                count = count+1
+                count = count + 1
                 failed_books.append(t[1])
         if failed_books:
             print("\nSome books were not added to the database because they had an invalid format:")
@@ -239,6 +244,11 @@ class db_operations:
                         self.db.commit()
         print("done")
 
+    def hash_password(self, password):
+        salt = os.urandom(32)
+        key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+        return salt, key
+
     def verify_new_customer_creds(self, info):
         """Function to take the information entered by a new customer and check its validity.
                 A valid set of credentials should exhibit the following qualities:
@@ -255,7 +265,7 @@ class db_operations:
             successfully added to the database and False otherwise), a list of error codes, and a list of
             error messages that will be displayed on the user interface if invalid data is entered."""
 
-        result = {'success': True, 'message':[], 'errorCodes':[], 'duplicatePhone':False}
+        result = {'success': True, 'message': [], 'errorCodes': [], 'duplicatePhone': False}
 
         # Valid password check
         if not (info['password'] == info['password2']):
@@ -294,9 +304,9 @@ class db_operations:
         if not dup:
             self.cursor.execute("INSERT INTO customerpersonal VALUES (%s,%s)", (int(info['phone']), info['address']))
 
-        self.cursor.execute("INSERT INTO customercredentials VALUES (%s,%s,%s,%s,%s)", (info['loginID'], info['firstName'],
-                                                                                        info['lastName'], info['password'],
-                                                                                        int(info['phone'])))
+        self.cursor.execute("INSERT INTO customercredentials VALUES (%s,%s,%s,%s,%s,%s)",
+                            (info['loginID'], info['firstName'], info['lastName'], info['salt'],
+                             info['key'], int(info['phone'])))
         self.db.commit()
 
     def confirm_login(self, info):
@@ -304,17 +314,31 @@ class db_operations:
         a manager. NOTE: managers and customers are intentionally separated, so a manager's account won't be found
         in customer, and vice versa. Therefore, we can return a definitive result on the first hit but need to check
         both tables if we miss the first search."""
-        self.cursor.execute("SELECT * FROM customercredentials WHERE loginID=%s AND pass=%s",
-                            (info['loginID'], info['password']))
-        if len(self.cursor.fetchall()):
-            return False, True
+        manager = False
+        valid_user = False
+        self.cursor.execute("SELECT salt, pass_key FROM customercredentials WHERE loginID=%s",
+                            (info['loginID'],))
 
-        self.cursor.execute("SELECT * FROM managercredentials WHERE loginID=%s AND pass=%s",
-                            (info['loginID'], info['password']))
-        if len(self.cursor.fetchall()):
-            return True, True
+        password_entered = info['password']
+        key = b''
+        salt = b''
+        for user in self.cursor.fetchall():
+            salt = user[0]
+            key = user[1]
 
-        return False, False
+        self.cursor.execute("SELECT salt, pass_key FROM managercredentials WHERE loginID=%s",
+                            (info['loginID'],))
+
+        for user in self.cursor.fetchall():
+            manager = True
+            salt = user[0]
+            key = user[1]
+
+        new_key = hashlib.pbkdf2_hmac('sha256', password_entered.encode('utf-8'), salt, 100000)
+        if key == new_key:
+            valid_user = True
+
+        return manager, valid_user
 
     def valid_book(self, info):
         """Given an ISBN, find the book in the database and return the price, a boolean indicating whether or not
@@ -347,7 +371,7 @@ class db_operations:
         # return value
         if 'title_filt' in filters:
             query_sections += "SELECT * FROM book WHERE title LIKE %s"
-            args.append('%'+query+'%')
+            args.append('%' + query + '%')
 
         if 'author_filt' in filters:
             if query_sections:

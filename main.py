@@ -4,6 +4,8 @@ import data_management as data_manage
 from flask import Flask, request, render_template, redirect, session, url_for
 from decimal import Decimal as decimal
 
+# Remember to set FLASK_APP to main if running for the first time.
+
 db_ops = db_func.db_operations('projectdb')
 app = Flask(__name__)
 app.secret_key = 'top_secret_key'
@@ -40,7 +42,7 @@ def forgot():
 def new_account():
     password = password2 = ''
     user_info = {'firstName': '', 'lastname': '', 'phone': '', 'address': '', 'loginID': '', 'password': '',
-                 'password2': ''}
+                 'password2': '', 'salt': '', 'key': ''}
     errors = []
     if request.method == "POST":
         user_info['firstName'] = request.form['firstName']
@@ -53,6 +55,8 @@ def new_account():
         result = db_ops.verify_new_customer_creds(user_info)
         if result['success']:
             print('new account successfully created')
+            user_info['salt'], user_info['key'] = db_ops.hash_password(user_info['password'])
+            print(user_info['salt'], user_info['key'])
             db_ops.add_customer(user_info, result['duplicatePhone'])
             return redirect('/')
         else:
