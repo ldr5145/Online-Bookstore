@@ -145,7 +145,7 @@ def order_book():
         else:
             valid, price, title, stock = db_ops.valid_book(order_info)
             if valid:
-                if stock > int(order_info['quantity']):
+                if stock >= int(order_info['quantity']):
                     if 'order' in request.form:
                         session['order_details'] = {'ISBN': [order_info['ISBN']], 'quantity': [order_info['quantity']],
                                                     'loginID': session['username']}
@@ -171,6 +171,7 @@ def order_book():
                     if stock:
                         error = [
                             'There are only ' + str(stock) + ' copies of that book left, please reduce your quantity.']
+                        posts['ISBN'] = request.form['ISBN']
                     else:
                         error = ['That book is currently sold out, please try again later.']
             else:

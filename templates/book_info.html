@@ -32,7 +32,7 @@
 <h2 style="text-align:center;">
 By:
 {% for auth in posts.authors %}
-    {% if loop.last %}
+    {% if loop.last and posts.authors|length > 1 %}
         and
     {% endif %}
     {{ auth }}
@@ -58,7 +58,7 @@ By:
         <br><br>
         <label>Number of Pages: {{ posts.book[5] }}</label>
         <br><br>
-        <label>Current stock available: {{ posts.book[6] }}</label>
+        <label>Currently in stock: {% if posts.book[6] > 0 %}Yes{% else %}No{% endif %}</label>
         <br><br>
         <label>Genre: {{ posts.book[8] }}</label>
         <br><br>

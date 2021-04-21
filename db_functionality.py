@@ -194,10 +194,10 @@ class db_operations:
             try:
                 date = datetime.datetime.strptime(book[7], '%m/%d/%Y').date()
                 t = (book[0], book[1], book[8], book[3], date,
-                     int(book[4]), initial_stock, book[9], 0.00, 0)
+                     int(book[4]), initial_stock, book[9], 0)
                 self.cursor.execute(
                     """INSERT INTO book (ISBN, title, publisher, lang, publicationDate, pageCount, stock, price, 
-                    avg_rating, num_ratings) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", t)
+                    num_ratings) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""", t)
             except Exception as e:
                 count = count + 1
                 failed_books.append(t[1])
