@@ -96,16 +96,16 @@ def browse():
     return render_template('browse_books.html', developer='Liam Raehsler', posts=posts)
 
 
-@app.route("/index/book_info", methods=["POST", "GET"])
-def display_book():
+@app.route("/index/book_info/<isbn>", methods=["POST", "GET"])
+def display_book(isbn):
+    print("request args; ", request.args)
     posts = {'book': (), 'authors': [], 'comments': [], 'loginID': ''}
     if 'username' not in session:
         return redirect(url_for('login'))
-    if 'ISBN' in session:
-        print("made it in ISBN")
-        book, authors = db_ops.get_single_book_info(session['ISBN'])
-        posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(session['ISBN']),
-                 'loginID': session['username']}
+    # if 'ISBN' in session:
+    #     book, authors = db_ops.get_single_book_info(session['ISBN'])
+    #     posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(session['ISBN']),
+    #              'loginID': session['username']}
     if request.method == "POST":
         print(request.form)
         if 'return' in request.form:
@@ -115,37 +115,38 @@ def display_book():
             return redirect(url_for('order_book'))
         elif 'rate' in request.form:
             session['ISBN'] = request.form['ISBN']
-            return redirect(url_for('rate_book'))
+            return redirect(url_for('rate_book', isbn=isbn))
         elif 'Very useful' in request.form:
-            print(session)
-            db_ops.update_comment_score(session['username'], request.form['Very useful'][1], 'veryUseful')
+            db_ops.update_comment_score(session['username'], request.form['Very useful'][0], 'veryUseful')
         elif 'Useful' in request.form:
-            db_ops.update_comment_score(session['username'], request.form['Useful'][1], 'useful')
+            db_ops.update_comment_score(session['username'], request.form['Useful'][0], 'useful')
         elif 'Useless' in request.form:
-            db_ops.update_comment_score(session['username'], request.form['Useless'][1], 'useless')
+            db_ops.update_comment_score(session['username'], request.form['Useless'][0], 'useless')
         else:
             book, authors = db_ops.get_single_book_info(request.form['ISBN'])
             posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(request.form['ISBN']),
                      'loginID': session['username']}
-    if not posts['book'] and 'ISBN' not in session:
-        return redirect(url_for('browse'))
-    else:
-        book, authors = db_ops.get_single_book_info(session['ISBN'])
-        posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(session['ISBN']),
+    if isbn:
+        print("isbn stored")
+        book, authors = db_ops.get_single_book_info(isbn)
+        posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(isbn),
                  'loginID': session['username']}
+    elif not posts['book'] and 'ISBN' not in session:
+        return redirect(url_for('browse'))
+    # elif 'ISBN' in session:
+    #     book, authors = db_ops.get_single_book_info(session['ISBN'])
+    #     posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(session['ISBN']),
+    #              'loginID': session['username']}
     return render_template('book_info.html', developer='Liam Raehsler', posts=posts)
 
-@app.route("/index/book_info/rate_book", methods=["POST","GET"])
-def rate_book():
+@app.route("/index/book_info/rate_book/<isbn>", methods=["POST","GET"])
+def rate_book(isbn):
     if 'username' not in session:
         return redirect(url_for('login'))
-    if 'ISBN' not in session:
-        return redirect(url_for('browse'))
     if request.method == "POST":
         print(request.form)
         if 'confirm' in request.form:
-            print(session['ISBN'])
-            comment_info = {'score': request.form['user_rating'], 'ISBN': session['ISBN'],
+            comment_info = {'score': request.form['user_rating'], 'ISBN': isbn,
                             'loginID': session['username'], 'message': ''}
             if 'message' in request.form:
                 comment_info['message'] = request.form['message']
@@ -154,9 +155,9 @@ def rate_book():
                 print("New comment created.")
             else:
                 print("Comment updated.")
-            return redirect(url_for('display_book'))
+            return redirect(url_for('display_book', isbn=isbn))
         elif 'cancel' in request.form:
-            return redirect(url_for('display_book'))
+            return redirect(url_for('display_book', isbn=isbn))
     return render_template("rate_book.html", developer='Liam Raehsler')
 
 @app.route("/index/order_book", methods=["POST", "GET"])

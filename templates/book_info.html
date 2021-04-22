@@ -87,15 +87,16 @@ By:
                 <label style="font-size:15px; color:Red; width:120px">Useless: {{ comment[7] }}</label>
                 <br><br>
                 {% if comment[2] != posts.loginID %}
-                    <button type="submit" name="Very useful" value="{{ comment }}" class="button">
+                    <input type="hidden" name="ISBN" value="{{ comment[1] }}">
+                    <button type="submit" name="Very useful" value="{{ comment[0] }}" class="button">
                       Very Useful
                     </button>
                     &nbsp;
-                    <button type="submit" name="Useful" value="{{ comment }}" class="button">
+                    <button type="submit" name="Useful" value="{{ comment[0] }}" class="button">
                       Useful
                     </button>
                     &nbsp;
-                    <button type="submit" name="Useless" value="{{ comment }}" class="button">
+                    <button type="submit" name="Useless" value="{{ comment[0] }}" class="button">
                       Useless
                     </button>
                 {% endif %}

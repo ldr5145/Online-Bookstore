@@ -107,7 +107,7 @@ a:hover{
                </td>
                <td>{{ value[0][7] }}</td>
                <td>
-                   <form method="post" action="book_info" class="inline">
+                   <form method="get" action="book_info/{{ key }}" class="inline">
                       <button type="submit" name="ISBN" value="{{ key }}" class="link-button">
                         Link
                       </button>
