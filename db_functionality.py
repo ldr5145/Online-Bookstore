@@ -416,12 +416,14 @@ class db_operations:
             query_sections += "SELECT * FROM book WHERE publisher LIKE %s"
             args.append('%' + query[3] + '%')
 
+        # if the query is empty, that means they did not fill out any of the forms for filters they wanted.
+        if not query_sections:
+            return results
         # determine ordering method
         if order == '0':
             query_sections += " ORDER BY publicationDate"
         elif order == '1':
             query_sections += "ORDER BY "
-        print(query_sections)
         # execute final constructed query and store results in a dict
         self.cursor.execute(query_sections, args)
         books = self.cursor.fetchall()

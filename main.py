@@ -77,11 +77,12 @@ def welcome_page():
 
 @app.route("/index/catalog", methods=["POST", "GET"])
 def browse():
-    posts = {'results': {}, 'filters': {}, 'startDate': '', 'endDate': '', 'order': '0'}
+    posts = {'results': {}, 'filters': {}, 'filter_semantics': 1, 'startDate': '', 'endDate': '', 'order': '0'}
     session.pop('ISBN', None)
     if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == "POST":
+        print(request.form)
         posts['order'] = request.form['order']
         for i in request.form:
             if request.form[i] == 'on':

@@ -88,10 +88,12 @@ a:hover{
             <input type="checkbox" id="publisher_filt" name="publisher_filt"
                 {% if 'publisher_filt' in posts.filters %}checked{% endif %}>
             <br><br>
-            <input type="radio" id="AND" name="filter_semantics" value="0">
+            <input type="radio" id="AND" name="filter_semantics" value="0"
+                    {% if posts.filter_semantics|int() == 0 %}checked{% endif %}>
             <small_label>AND</small_label>
             &nbsp;
-            <input type="radio" id="OR" name="filter_semantics" value="1" checked="true">
+            <input type="radio" id="OR" name="filter_semantics" value="1"
+                   {% if posts.filter_semantics|int() == 1 %}checked{% endif %}>
             <small_label>OR</small_label>
             <br><br>
             <small_label>Price Limit</small_label>
