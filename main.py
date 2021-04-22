@@ -115,11 +115,11 @@ def display_book(isbn):
             session['ISBN'] = request.form['ISBN']
             return redirect(url_for('rate_book', isbn=isbn))
         elif 'Very useful' in request.form:
-            db_ops.update_comment_score(session['username'], request.form['Very useful'][0], 'veryUseful')
+            db_ops.update_comment_score(session['username'], request.form['Very useful'], 'veryUseful')
         elif 'Useful' in request.form:
-            db_ops.update_comment_score(session['username'], request.form['Useful'][0], 'useful')
+            db_ops.update_comment_score(session['username'], request.form['Useful'], 'useful')
         elif 'Useless' in request.form:
-            db_ops.update_comment_score(session['username'], request.form['Useless'][0], 'useless')
+            db_ops.update_comment_score(session['username'], request.form['Useless'], 'useless')
         else:
             book, authors = db_ops.get_single_book_info(request.form['ISBN'])
             posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(request.form['ISBN']),

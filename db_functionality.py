@@ -531,6 +531,7 @@ class db_operations:
         never be called with a user trying to rate their own comment (since there will be other measures for
         preventing that), so just need to check if the user has already rated this comment and is trying to change
         their vote."""
+        print(loginID, commentID, attrib_name)
         self.cursor.execute("SELECT rating FROM rates WHERE loginID = %s AND commentID = %s", (loginID, commentID))
         old_rating = self.cursor.fetchall()
         if old_rating:
