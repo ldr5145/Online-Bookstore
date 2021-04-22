@@ -89,25 +89,22 @@ def browse():
                 posts['filters'][i] = 'on'
                 posts['startDate'] = request.form['startDate']
                 posts['endDate'] = request.form['endDate']
+        posts['filter_semantics'] = request.form['filter_semantics']
 
-        posts['results'] = db_ops.find_books(request.form['query'], posts['filters'],
-                                             [posts['startDate'], posts['endDate']], posts['order'])
+        posts['results'] = db_ops.find_books([request.form['title'], request.form['author'], request.form['language'],
+                                             request.form['publisher']], posts['filters'],
+                                             [posts['startDate'], posts['endDate']], posts['order'],
+                                             posts['filter_semantics'])
 
     return render_template('browse_books.html', developer='Liam Raehsler', posts=posts)
 
 
 @app.route("/index/book_info/<isbn>", methods=["POST", "GET"])
 def display_book(isbn):
-    print("request args; ", request.args)
     posts = {'book': (), 'authors': [], 'comments': [], 'loginID': ''}
     if 'username' not in session:
         return redirect(url_for('login'))
-    # if 'ISBN' in session:
-    #     book, authors = db_ops.get_single_book_info(session['ISBN'])
-    #     posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(session['ISBN']),
-    #              'loginID': session['username']}
     if request.method == "POST":
-        print(request.form)
         if 'return' in request.form:
             return redirect(url_for('browse'))
         elif 'order' in request.form:
@@ -127,16 +124,9 @@ def display_book(isbn):
             posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(request.form['ISBN']),
                      'loginID': session['username']}
     if isbn:
-        print("isbn stored")
         book, authors = db_ops.get_single_book_info(isbn)
         posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(isbn),
                  'loginID': session['username']}
-    elif not posts['book'] and 'ISBN' not in session:
-        return redirect(url_for('browse'))
-    # elif 'ISBN' in session:
-    #     book, authors = db_ops.get_single_book_info(session['ISBN'])
-    #     posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(session['ISBN']),
-    #              'loginID': session['username']}
     return render_template('book_info.html', developer='Liam Raehsler', posts=posts)
 
 @app.route("/index/book_info/rate_book/<isbn>", methods=["POST","GET"])
@@ -144,7 +134,6 @@ def rate_book(isbn):
     if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == "POST":
-        print(request.form)
         if 'confirm' in request.form:
             comment_info = {'score': request.form['user_rating'], 'ISBN': isbn,
                             'loginID': session['username'], 'message': ''}

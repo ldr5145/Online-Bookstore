@@ -4,9 +4,10 @@
 a:hover{
     color:White;
 }
-#search_bar{
-    width:250px;
+.search_bar{
+    width:200px;
     height:25px;
+    padding:2px;
 }
 .inline {
   display: inline;
@@ -27,16 +28,32 @@ a:hover{
 .link-button:active {
   color:red;
 }
+.button{
+    width: 100px;
+    height: 30px;
+    border: none;
+    padding-left: 7px;
+    color: blue;
+}
 {% endblock %}
 {% block title %}Book catalog{% endblock %}
 {% block head_title %}Book catalog{% endblock %}
 {% block dev_id %}{{ super() }}{% endblock %}
 {% block submit_form %}
+
 <div class="main_form" style="width:800px">
     <form id="main_form" method="post">
-        <label for="search_bar">Search for books here</label>
-        <br>
-        <input type="search" id="search_bar" name="query">
+        <div id="search_div">
+            <label>Search for books here:</label>
+            <br><br>
+            <input type="text" id="search_title" name="title" class="search_bar" placeholder="Title">
+            <input type="text" id="search_author" name="author" class="search_bar" placeholder="Author">
+            <input type="text" id="search_language" name="language" class="search_bar"
+                   style="width:70px;" placeholder="Language">
+            <input type="text" id="search_publisher" name="publisher" class="search_bar" style="width:150px;"
+                   placeholder="Publisher">
+            <input type="submit" id="search" class="button" value="Search">
+        </div>
         <br><br>
         <div id="order_div">
             <small_label style="font-size:17px">Order results by:</small_label>
@@ -55,16 +72,27 @@ a:hover{
         <div id="filt_div" hidden>
             <br>
             <small_label for="title_filt">Title</small_label>
-            <input type="checkbox" id="title_filt" name="title_filt">
+
+            <input type="checkbox" id="title_filt" name="title_filt"
+                   {% if 'title_filt' in posts.filters %}checked{% endif %}>
             &nbsp;
             <small_label for="author_filt">Author</small_label>
-            <input type="checkbox" id="author_filt" name="author_filt">
+            <input type="checkbox" id="author_filt" name="author_filt"
+                   {% if 'author_filt' in posts.filters %}checked{% endif %}>
             &nbsp;
             <small_label for="lang_filt">Language</small_label>
-            <input type="checkbox" id="lang_filt" name="lang_filt">
+            <input type="checkbox" id="lang_filt" name="lang_filt"
+                {% if 'lang_filt' in posts.filters %}checked{% endif %}>
             &nbsp;
             <small_label for="publisher_filt">Publisher</small_label>
-            <input type="checkbox" id="publisher_filt" name="publisher_filt">
+            <input type="checkbox" id="publisher_filt" name="publisher_filt"
+                {% if 'publisher_filt' in posts.filters %}checked{% endif %}>
+            <br><br>
+            <input type="radio" id="AND" name="filter_semantics" value="0">
+            <small_label>AND</small_label>
+            &nbsp;
+            <input type="radio" id="OR" name="filter_semantics" value="1" checked="true">
+            <small_label>OR</small_label>
             <br><br>
             <small_label>Price Limit</small_label>
             <input type="checkbox" id="price_check" name="price_check">
@@ -85,6 +113,7 @@ a:hover{
     </form>
     <br><br>
     <div id="results_div">
+        <label>Results found: {{ posts.results|length }}</label>
        <table style="width:100%">
            {% for key,value in posts.results.items() %}
            {% if loop.first %}

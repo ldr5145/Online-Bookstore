@@ -366,13 +366,19 @@ class db_operations:
             return True, float(book[2]), book[1], book[3]
         return False, 0, 0, 0
 
-    def find_books(self, query, filters, dates, order):
+    def find_books(self, query, filters, dates, order, semantics):
         """Given a query entered by the user, return all books that match the search. Results must
         satisfy the provided filters. I will be making the result a dict so that duplicates are avoided.
         Also, because I may need to sort all of the books by a certain value, each filter check will
         add a subsection of the query and only one query will be executed at the end so that all of the results
         can be ordered together."""
-
+        print(query, filters, dates, order, semantics)
+        if int(semantics):
+            # OR semantics
+            conjunction = ' UNION '
+        else:
+            # AND semantics
+            conjunction = ' INTERSECT '
         results = {}
         query_sections = ''
         args = []
@@ -386,36 +392,36 @@ class db_operations:
 
         # go through each active filter and do a query based on that filter, then append results to the final
         # return value
-        if 'title_filt' in filters:
+        if 'title_filt' in filters and query[0]:
             query_sections += "SELECT * FROM book WHERE title LIKE %s"
-            args.append('%' + query + '%')
+            args.append('%' + query[0] + '%')
 
-        if 'author_filt' in filters:
+        if 'author_filt' in filters and query[1]:
             if query_sections:
-                query_sections += ' UNION '
+                query_sections += conjunction
             query_sections += """SELECT B.ISBN, title, publisher, B.lang, publicationDate, pageCount, 
             stock, B.price, B.subject, avg_rating, total_rating_score, num_ratings FROM book B, author A, wrote W 
             WHERE W.ISBN = B.ISBN AND W.authorID = A.ID AND A.name LIKE %s"""
-            args.append('%' + query + '%')
+            args.append('%' + query[1] + '%')
 
-        if 'lang_filt' in filters:
+        if 'lang_filt' in filters and query[2]:
             if query_sections:
-                query_sections += ' UNION '
+                query_sections += conjunction
             query_sections += "SELECT * FROM book WHERE lang LIKE %s"
-            args.append('%' + query + '%')
+            args.append('%' + query[2] + '%')
 
-        if 'publisher_filt' in filters:
+        if 'publisher_filt' in filters and query[3]:
             if query_sections:
-                query_sections += ' UNION '
+                query_sections += conjunction
             query_sections += "SELECT * FROM book WHERE publisher LIKE %s"
-            args.append('%' + query + '%')
+            args.append('%' + query[3] + '%')
 
         # determine ordering method
         if order == '0':
             query_sections += " ORDER BY publicationDate"
         elif order == '1':
             query_sections += "ORDER BY "
-
+        print(query_sections)
         # execute final constructed query and store results in a dict
         self.cursor.execute(query_sections, args)
         books = self.cursor.fetchall()
