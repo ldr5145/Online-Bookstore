@@ -366,13 +366,13 @@ class db_operations:
             return True, float(book[2]), book[1], book[3]
         return False, 0, 0, 0
 
-    def find_books(self, query, filters, dates, order, semantics):
+    def find_books(self, query, filters, dates, order, descending, semantics):
         """Given a query entered by the user, return all books that match the search. Results must
         satisfy the provided filters. I will be making the result a dict so that duplicates are avoided.
         Also, because I may need to sort all of the books by a certain value, each filter check will
         add a subsection of the query and only one query will be executed at the end so that all of the results
         can be ordered together."""
-        print(query, filters, dates, order, semantics)
+        print(descending)
         if int(semantics):
             # OR semantics
             conjunction = ' UNION '
@@ -423,7 +423,12 @@ class db_operations:
         if order == '0':
             query_sections += " ORDER BY publicationDate"
         elif order == '1':
-            query_sections += "ORDER BY "
+            query_sections += "ORDER BY avg_rating"
+
+        # if descending is true, add descending specification
+        if int(descending):
+            query_sections += " DESC"
+
         # execute final constructed query and store results in a dict
         self.cursor.execute(query_sections, args)
         books = self.cursor.fetchall()

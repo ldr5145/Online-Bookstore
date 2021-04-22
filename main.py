@@ -77,7 +77,8 @@ def welcome_page():
 
 @app.route("/index/catalog", methods=["POST", "GET"])
 def browse():
-    posts = {'results': {}, 'filters': {}, 'filter_semantics': 1, 'startDate': '', 'endDate': '', 'order': '0'}
+    posts = {'results': {}, 'filters': {}, 'filter_semantics': 1, 'startDate': '', 'endDate': '', 'order': 0,
+             'descending': 0}
     session.pop('ISBN', None)
     if 'username' not in session:
         return redirect(url_for('login'))
@@ -91,10 +92,10 @@ def browse():
                 posts['startDate'] = request.form['startDate']
                 posts['endDate'] = request.form['endDate']
         posts['filter_semantics'] = request.form['filter_semantics']
-
+        posts['descending'] = request.form['descending']
         posts['results'] = db_ops.find_books([request.form['title'], request.form['author'], request.form['language'],
                                              request.form['publisher']], posts['filters'],
-                                             [posts['startDate'], posts['endDate']], posts['order'],
+                                             [posts['startDate'], posts['endDate']], posts['order'], posts['descending'],
                                              posts['filter_semantics'])
 
     return render_template('browse_books.html', developer='Liam Raehsler', posts=posts)
