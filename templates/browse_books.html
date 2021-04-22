@@ -128,6 +128,7 @@ a:hover{
            <tr>
                <th>Title</th>
                <th>Author(s)</th>
+               <th>Rating</th>
                <th>Price</th>
                <th>More Info</th>
            </tr>
@@ -142,7 +143,8 @@ a:hover{
                        {% endif %}
                    {% endfor %}
                </td>
-               <td>{{ value[0][7] }}</td>
+               <td align="right">{{ value[0][9] }}</td>
+               <td align="right">${{ value[0][7] }}</td>
                <td>
                    <form method="get" action="book_info/{{ key }}" class="inline">
                       <button type="submit" name="ISBN" value="{{ key }}" class="link-button">
