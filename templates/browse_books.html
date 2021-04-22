@@ -46,31 +46,40 @@ a:hover{
         <div id="search_div">
             <label>Search for books here:</label>
             <br><br>
-            <input type="text" id="search_title" name="title" class="search_bar" placeholder="Title">
-            <input type="text" id="search_author" name="author" class="search_bar" placeholder="Author">
+            <input type="text" id="search_title" name="title" class="search_bar" placeholder="Title"
+            {% if posts.title is defined and posts.title|length%}value="{{ posts.title }}"{% endif %}>
+            <input type="text" id="search_author" name="author" class="search_bar" placeholder="Author"
+            {% if posts.author is defined and posts.author|length%}value="{{ posts.author }}"{% endif %}>
             <input type="text" id="search_language" name="language" class="search_bar"
-                   style="width:70px;" placeholder="Language">
+                   style="width:70px;" placeholder="Language"
+            {% if posts.language is defined and posts.language|length%}value="{{ posts.language }}"{% endif %}>
             <input type="text" id="search_publisher" name="publisher" class="search_bar" style="width:150px;"
-                   placeholder="Publisher">
+                   placeholder="Publisher"
+            {% if posts.publisher is defined and posts.publisher|length%}value="{{ posts.publisher }}"{% endif %}>
             <input type="submit" id="search" class="button" value="Search">
         </div>
         <br><br>
         <div id="order_div">
             <small_label style="font-size:17px">Order results by:</small_label>
             <br>
-            <input type="radio" id="order_published" name="order" checked="true" value="0">
+            <input type="radio" id="order_published" name="order" checked="true" value="0"
+            {% if posts.order|int() == 0 %}checked{% endif %}>
             <small_label>Date Published</small_label>
             &nbsp;
-            <input type="radio" id="order_score" name="order" value="1">
+            <input type="radio" id="order_score" name="order" value="1"
+            {% if posts.order|int() == 1 %}checked{% endif %}>
             <small_label>Average score</small_label>
             &nbsp;
-            <input type="radio" id="order_trusted" name="order" value="2">
+            <input type="radio" id="order_trusted" name="order" value="2"
+            {% if posts.order|int() == 2 %}checked{% endif %}>
             <small_label>Average trusted score</small_label>
             <br><br>
-            <input type="radio" id="ASC" name="descending" value="0">
+            <input type="radio" id="ASC" name="descending" value="0"
+            {% if posts.descending|int() == 0 %}checked{% endif %}>
             <small_label>Ascending</small_label>
             &nbsp;
-            <input type="radio" id="DESC" name="descending" value="1">
+            <input type="radio" id="DESC" name="descending" value="1"
+            {% if posts.descending|int() == 1 %}checked{% endif %}>
             <small_label>Descending</small_label>
         </div>
         <br>

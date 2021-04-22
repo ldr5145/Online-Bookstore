@@ -93,6 +93,10 @@ def browse():
                 posts['endDate'] = request.form['endDate']
         posts['filter_semantics'] = request.form['filter_semantics']
         posts['descending'] = request.form['descending']
+        posts['title'] = request.form['title']
+        posts['author'] = request.form['author']
+        posts['language'] = request.form['language']
+        posts['publisher'] = request.form['publisher']
         posts['results'] = db_ops.find_books([request.form['title'], request.form['author'], request.form['language'],
                                              request.form['publisher']], posts['filters'],
                                              [posts['startDate'], posts['endDate']], posts['order'], posts['descending'],
