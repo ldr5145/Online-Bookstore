@@ -590,7 +590,7 @@ class db_operations:
         phone, password, specifics of orders, etc...) NOTE: No need to check if it is a valid loginID, as this
         function will only be used in the context where the login ID has already been checked and is valid."""
         info ={'loginID': '', 'firstName': '', 'lastName': '', 'orderCount': 0, 'books_purchased': 0, 'num_comments': 0,
-               'comments': [], 'trusted': 0, 'untrusted': 0, 'personalStatus': ''}
+               'comments': [], 'books_commented': [], 'trusted': 0, 'untrusted': 0, 'personalStatus': ''}
         self.cursor.execute("""SELECT DISTINCT C.loginID, firstName, lastName, COUNT(DISTINCT orderNumber),
         COUNT(DISTINCT commentID) FROM customercredentials C, comment CO, orderlog O 
         WHERE C.loginID = %s AND O.loginID = %s AND CO.loginID = %s""", (loginID, loginID, loginID))
@@ -607,11 +607,13 @@ class db_operations:
         result = self.cursor.fetchone()
         info['books_purchased'] = result[0]
 
-        self.cursor.execute("""SELECT * FROM comment WHERE loginID = %s""", (loginID,))
+        self.cursor.execute("""SELECT * FROM comment WHERE loginID = %s ORDER BY commentDate DESC""", (loginID,))
         result = self.cursor.fetchall()
         for comment in result:
             info['comments'].append(comment)
 
+        for comment in info['comments']:
+            info['books_commented'].append(self.get_single_book_info(comment[1]))
         self.cursor.execute("""SELECT COUNT(loginID) FROM trusts WHERE otherLoginID=%s AND trustStatus='TRUSTED'""",
                             (loginID,))
         result = self.cursor.fetchone()

@@ -49,4 +49,35 @@
         {% endif %}
     </form>
 </div>
+<br>
+{% if posts.info.comments|length > 0 %}
+    <div class="main_form">
+        <h2 align="center"><u>Comments made by {{ posts.info.loginID }}:</u></h2>
+        {% for comment_index in range(posts.info.comments|length) %}
+        <div style="border:1px solid black; padding:10px;">
+            <label><b>Title:</b> {{ posts.info.books_commented[comment_index][0][1] }}</label>
+            <br><br>
+            <label><b>Author(s):</b>
+                {% for auth in posts.info.books_commented[comment_index][1] %}
+                    {{ auth }}
+                    {% if not loop.last %}
+                        ,
+                    {% endif %}
+                {% endfor %}
+            </label>
+            <br><br>
+            <label><b>Score:</b> {{ posts.info.comments[comment_index][3] }}</label>
+            <br><br>
+            <label><b>Date published:</b> {{ posts.info.comments[comment_index][8] }}</label>
+            <br><br>
+            {% if posts.info.comments[comment_index][4] %}
+            <label><b>Message:</b> <small_label>{{ posts.info.comments[comment_index][4] }}</small_label></label>
+            {% else %}
+                <label><b>Message:</b> No message given.</label>
+            {% endif %}
+        </div>
+        <br>
+        {% endfor %}
+    </div>
+{% endif %}
 {% endblock %}
