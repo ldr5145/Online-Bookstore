@@ -1,0 +1,31 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+    .button{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
+}
+{% endblock %}
+{% block title %}Find other customers{% endblock %}
+{% block head_title %}Find other customers{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <form id="main_form" method="post">
+        <label>Search for customers here by their username:</label>
+        <br><br>
+        <input style="width:200px" type="text" id="loginID" name="loginID" minlength="1" maxlength="30" required>
+        <br><br>
+        <input type="submit" id="search" value="Search" class="button">
+    </form>
+    {% for e in error_message %}
+        <br><br>
+        <error_label>{{ e }}</error_label>
+    {% endfor %}
+</div>
+{% endblock %}

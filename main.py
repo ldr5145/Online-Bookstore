@@ -296,6 +296,28 @@ def empty_cart():
         return redirect(url_for('cart_confirm'))
     return render_template('empty_cart.html', developer='Liam Raehsler')
 
+@app.route("/index/customer_archives", methods=["GET","POST"])
+def customer_search():
+    error = ''
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if request.method == "POST":
+        searched_name = request.form['loginID']
+        if db_ops.search_customers(searched_name):
+            return redirect(url_for('customer_profile', loginID=searched_name))
+        else:
+            error = "That user does not exist in the database."
+    return render_template("customer_search.html", developer='Liam Raehsler', error_message=error)
+
+@app.route("/index/customer_profile/<loginID>", methods=["POST","GET"])
+def customer_profile(loginID):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if not db_ops.search_customers(loginID):
+        return redirect(url_for('customer_search'))
+    posts = {'loginID': loginID, 'info': db_ops.get_basic_userinfo(loginID,session['username'])}
+    print(posts['info'])
+    return render_template("customer_profile.html", developer='Liam Raehsler', posts=posts)
 
 @app.route("/logout")
 def logout():

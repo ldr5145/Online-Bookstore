@@ -1,0 +1,14 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+{% endblock %}
+{% block title %}{{ posts.loginID }}'s profile page{% endblock %}
+{% block head_title %}{{ posts.loginID }}'s profile page{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <form id="main_form" method="post">
+        <label>Will fill this up soon.</label>
+    </form>
+</div>
+{% endblock %}

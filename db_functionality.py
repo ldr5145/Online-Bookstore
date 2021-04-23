@@ -559,5 +559,49 @@ class db_operations:
             self.cursor.execute("""INSERT INTO rates VALUES (%s,%s,%s)""", (loginID, commentID, attrib_name))
         self.db.commit()
 
+    def search_customers(self, loginID):
+        """Given a single login ID, see if that customer exists on the database. Return true if so, false if not."""
+        self.cursor.execute("""SELECT COUNT(*) FROM customercredentials WHERE loginID = %s""", (loginID,))
+        if self.cursor.fetchone()[0]:
+            return True
+        else:
+            return False
+
+    def get_basic_userinfo(self, loginID, my_id):
+        """Given a single login ID, get basic info (name, number of orders made, number of books purchased,
+        comments, total trust score, number trusted and untrusted, etc.). AVOID sensitive information (address,
+        phone, password, specifics of orders, etc...) NOTE: No need to check if it is a valid loginID, as this
+        function will only be used in the context where the login ID has already been checked and is valid."""
+        info ={'firstName': '', 'lastName': '', 'orderCount': 0, 'num_comments': 0, 'comments': [], 'trusted': 0,
+               'untrusted': 0, 'personalStatus': ''}
+        self.cursor.execute("""SELECT DISTINCT firstName, lastName, COUNT(DISTINCT orderNumber),
+        COUNT(DISTINCT commentID) FROM customercredentials C, comment CO, orderlog O 
+        WHERE C.loginID = %s AND O.loginID = %s AND CO.loginID = %s""", (loginID, loginID, loginID))
+
+        result = self.cursor.fetchone()
+        info['firstName'] = result[0]
+        info['lastName'] = result[1]
+        info['orderCount'] = result[2]
+        info['num_comments'] = result[3]
+
+        self.cursor.execute("""SELECT * FROM comment WHERE loginID = %s""", (loginID,))
+        result = self.cursor.fetchall()
+        for comment in result:
+            info['comments'].append(comment)
+
+        self.cursor.execute("""SELECT COUNT(A.loginID), COUNT(B.loginID) FROM trusts A, trusts B
+        WHERE A.otherLoginID=%s AND A.trustStatus='TRUSTED'
+        AND B.otherLoginID=%s AND B.trustStatus='UNTRUSTED'""",(loginID, loginID))
+        result = self.cursor.fetchone()
+        info['trusted'] = result[0]
+        info['untrusted'] = result[1]
+
+        self.cursor.execute("""SELECT trustStatus FROM trusts WHERE loginID=%s AND otherLoginID=%s""",
+                            (my_id, loginID))
+        result = self.cursor.fetchone()
+        if result:
+            info['personalStatus'] = result[0]
+        return info
+
     def end_session(self):
         self.db.close()
