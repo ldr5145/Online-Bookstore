@@ -536,7 +536,6 @@ class db_operations:
         never be called with a user trying to rate their own comment (since there will be other measures for
         preventing that), so just need to check if the user has already rated this comment and is trying to change
         their vote."""
-        print(loginID, commentID, attrib_name)
         self.cursor.execute("SELECT rating FROM rates WHERE loginID = %s AND commentID = %s", (loginID, commentID))
         old_rating = self.cursor.fetchall()
         if old_rating:
@@ -567,22 +566,46 @@ class db_operations:
         else:
             return False
 
+    def update_trust_status(self, loginID, otherLoginID, status):
+        """Update the trust status given both usernames and the status. If a relationship between the two usernames
+        exists, either update the status if it is changing the status OR delete the relationship if the status is the
+        same (since we are removing the trust status). Otherwise, just create a new relationship."""
+        self.cursor.execute("""SELECT trustStatus FROM trusts WHERE loginID=%s AND otherLoginID=%s""",
+                            (loginID, otherLoginID))
+        result = self.cursor.fetchone()
+        if result:
+            if result[0] == status:
+                self.cursor.execute("""DELETE FROM trusts WHERE loginID=%s AND otherLoginID=%s""",
+                                    (loginID, otherLoginID))
+            else:
+                self.cursor.execute("""UPDATE trusts SET trustStatus=%s WHERE loginID=%s AND otherLoginID=%s""",
+                                    (status, loginID, otherLoginID))
+        else:
+            self.cursor.execute("""INSERT INTO trusts VALUES (%s, %s, %s)""", (loginID, otherLoginID, status))
+        self.db.commit()
+
     def get_basic_userinfo(self, loginID, my_id):
         """Given a single login ID, get basic info (name, number of orders made, number of books purchased,
         comments, total trust score, number trusted and untrusted, etc.). AVOID sensitive information (address,
         phone, password, specifics of orders, etc...) NOTE: No need to check if it is a valid loginID, as this
         function will only be used in the context where the login ID has already been checked and is valid."""
-        info ={'firstName': '', 'lastName': '', 'orderCount': 0, 'num_comments': 0, 'comments': [], 'trusted': 0,
-               'untrusted': 0, 'personalStatus': ''}
-        self.cursor.execute("""SELECT DISTINCT firstName, lastName, COUNT(DISTINCT orderNumber),
+        info ={'loginID': '', 'firstName': '', 'lastName': '', 'orderCount': 0, 'books_purchased': 0, 'num_comments': 0,
+               'comments': [], 'trusted': 0, 'untrusted': 0, 'personalStatus': ''}
+        self.cursor.execute("""SELECT DISTINCT C.loginID, firstName, lastName, COUNT(DISTINCT orderNumber),
         COUNT(DISTINCT commentID) FROM customercredentials C, comment CO, orderlog O 
         WHERE C.loginID = %s AND O.loginID = %s AND CO.loginID = %s""", (loginID, loginID, loginID))
 
         result = self.cursor.fetchone()
-        info['firstName'] = result[0]
-        info['lastName'] = result[1]
-        info['orderCount'] = result[2]
-        info['num_comments'] = result[3]
+        info['loginID'] = result[0]
+        info['firstName'] = result[1]
+        info['lastName'] = result[2]
+        info['orderCount'] = result[3]
+        info['num_comments'] = result[4]
+
+        self.cursor.execute("""SELECT SUM(quantity) FROM orderlog O, productof P WHERE O.orderNumber = P.orderNumber
+        AND loginID=%s""", (loginID,))
+        result = self.cursor.fetchone()
+        info['books_purchased'] = result[0]
 
         self.cursor.execute("""SELECT * FROM comment WHERE loginID = %s""", (loginID,))
         result = self.cursor.fetchall()

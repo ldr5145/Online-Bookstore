@@ -1,14 +1,52 @@
 {% extends "base_with_sidebar.html" %}
 {% block style %}
 {{ super() }}
+    .button{
+        width: 100px;
+        height: 30px;
+        border: none;
+        border-radius: 17px;
+        padding-left: 7px;
+        color: blue;
+    }
 {% endblock %}
-{% block title %}{{ posts.loginID }}'s profile page{% endblock %}
-{% block head_title %}{{ posts.loginID }}'s profile page{% endblock %}
+{% block title %}{{ posts.info.loginID }}'s profile page{% endblock %}
+{% block head_title %}{{ posts.info.loginID }}'s profile page{% endblock %}
 {% block dev_id %}{{ super() }}{% endblock %}
 {% block submit_form %}
 <div class="main_form">
     <form id="main_form" method="post">
-        <label>Will fill this up soon.</label>
+        <div id="basic_info_div">
+            <label><b>First name:</b> {{ posts.info.firstName }}</label>
+            <br><br>
+            <label><b>Last name:</b> {{ posts.info.lastName }}</label>
+            <br><br>
+            <label><b>Orders made:</b> {{ posts.info.orderCount }}</label>
+            <br><br>
+            <label><b>Total books purchased:</b> {{ posts.info.books_purchased }}</label>
+            <br><br>
+            <label><b>Number of comments written:</b> {{ posts.info.num_comments }}</label>
+            <br><br>
+            <label><b>Number of trusted:</b> {{ posts.info.trusted }}</label>
+            <br><br>
+            <label><b>Number of untrusted:</b> {{ posts.info.untrusted }}</label>
+            <br><br>
+            <label><b>Your trust status of this person:</b>
+                {% if posts.info.personalStatus|length %}
+                {{ posts.info.personalStatus }}
+                {% else %}
+                None
+                {% endif %}</label>
+        </div>
+        {% if posts.loginID != posts.info.loginID %}
+            <br>
+            <div id="trust_div" style="float:right">
+                <form id="trust_form" method="post">
+                    <input type="submit" id="trust" class="button" name="trust" value="Trust user">
+                    <input type="submit" id="untrust" class="button" name="untrust" value="Distrust user">
+                </form>
+            </div>
+        {% endif %}
     </form>
 </div>
 {% endblock %}

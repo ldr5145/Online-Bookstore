@@ -62,7 +62,6 @@ def new_account():
             return redirect('/')
         else:
             errors = {'errorCodes': result['errorCodes'], 'messages': result['message']}
-            print(errors)
 
     return render_template('create_account.html', developer='Liam Raehsler', posts=user_info, errors=errors)
 
@@ -83,7 +82,6 @@ def browse():
     if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == "POST":
-        print(request.form)
         posts['order'] = request.form['order']
         for i in request.form:
             if request.form[i] == 'on':
@@ -315,8 +313,10 @@ def customer_profile(loginID):
         return redirect(url_for('login'))
     if not db_ops.search_customers(loginID):
         return redirect(url_for('customer_search'))
-    posts = {'loginID': loginID, 'info': db_ops.get_basic_userinfo(loginID,session['username'])}
-    print(posts['info'])
+    if request.method == "POST":
+        db_ops.update_trust_status(session['username'], loginID,
+                                   'TRUSTED' if 'trust' in request.form else 'UNTRUSTED')
+    posts = {'loginID': session['username'], 'info': db_ops.get_basic_userinfo(loginID, session['username'])}
     return render_template("customer_profile.html", developer='Liam Raehsler', posts=posts)
 
 @app.route("/logout")
