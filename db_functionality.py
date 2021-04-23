@@ -612,12 +612,15 @@ class db_operations:
         for comment in result:
             info['comments'].append(comment)
 
-        self.cursor.execute("""SELECT COUNT(A.loginID), COUNT(B.loginID) FROM trusts A, trusts B
-        WHERE A.otherLoginID=%s AND A.trustStatus='TRUSTED'
-        AND B.otherLoginID=%s AND B.trustStatus='UNTRUSTED'""",(loginID, loginID))
+        self.cursor.execute("""SELECT COUNT(loginID) FROM trusts WHERE otherLoginID=%s AND trustStatus='TRUSTED'""",
+                            (loginID,))
         result = self.cursor.fetchone()
         info['trusted'] = result[0]
-        info['untrusted'] = result[1]
+
+        self.cursor.execute("""SELECT COUNT(loginID) FROM trusts WHERE otherLoginID=%s AND trustStatus='UNTRUSTED'""",
+                            (loginID,))
+        result = self.cursor.fetchone()
+        info['untrusted'] = result[0]
 
         self.cursor.execute("""SELECT trustStatus FROM trusts WHERE loginID=%s AND otherLoginID=%s""",
                             (my_id, loginID))
