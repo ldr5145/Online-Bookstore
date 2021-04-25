@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block form_name %}main_form{% endblock %}
+{% block style %}
+{{ super() }}
+    a:hover{
+        color: White;
+    }
+{% endblock %}
+{% block title %}Manager Dashboard{% endblock %}
+{% block head_title %}Manager Dashboard{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <form id="main_form" method="post">
+        <label>Welcome to the manager dashboard, {{ user }}.</label>
+        <br><br>
+        <ul>
+            <li><a href="/index/manager_dashboard/new_manager">Register a new manager</a></li>
+            <li><a href="#">Add a new book to inventory</a></li>
+            <li><a href="#">Order a shipment of books into inventory</a></li>
+            <li><a href="#">Review book sale statistics</a></li>
+            <li><a href="#">Review customer statistics</a></li>
+            <li><a href="#">Remove customers</a></li>
+            <li><a href="#">Remove managers (link only works for the super manager)</a></li>
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </form>
+</div>
+{% endblock %}

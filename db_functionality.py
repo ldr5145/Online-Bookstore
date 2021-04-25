@@ -123,7 +123,7 @@ class db_operations:
             orderDate DATE,
             PRIMARY KEY (orderNumber),
             FOREIGN KEY (loginID) REFERENCES CustomerCredentials(loginID)
-            ON UPDATE CASCADE)""")
+            ON UPDATE CASCADE ON DELETE CASCADE)""")
 
         # Return Request
         self.cursor.execute(
@@ -357,11 +357,23 @@ class db_operations:
         if result[0]:
             self.cursor.execute("""DELETE FROM customerCredentials WHERE loginID=%s""", (info['loginID'],))
             self.db.commit()
-            self.cursor.execute("""SELECT COUNT(*) FROM customerCredentials WHERE phone=%s""", (int(info['phone'])))
+            self.cursor.execute("""SELECT COUNT(*) FROM customerCredentials WHERE phone=%s""", (int(info['phone']),))
             phone_count = self.cursor.fetchone()
             if not phone_count[0]:
-                self.cursor.execute("""DELETE FROM customerPersonal WHERE phone=%s""", (int(info['phone'],)))
+                self.cursor.execute("""DELETE FROM customerPersonal WHERE phone=%s""", (int(info['phone']),))
                 self.db.commit()
+
+    def promote_to_manager(self, loginID):
+        """Given a valid login ID, promote the user to a manager by removing their credentials from the customer
+        tables and adding it to the manager tables."""
+        self.cursor.execute("""SELECT * FROM customercredentials WHERE loginID=%s""", (loginID,))
+        creds = self.cursor.fetchone()
+        self.cursor.execute("""SELECT * FROM  customerpersonal WHERE phone=%s""", (int(creds[5]),))
+        personal = self.cursor.fetchone()
+
+        info = {'phone':creds[5], 'address':personal[1], 'loginID':creds[0], 'firstName':creds[1], 'lastName':creds[2],
+                'salt':creds[3], 'key':creds[4]}
+        self.add_manager(info)
 
     def confirm_login(self, info):
         """Given a username and a password, confirm whether it is a valid account and check if it is a customer or

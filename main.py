@@ -21,11 +21,12 @@ def login():
         creds['password'] = request.form['Password']
         remember_me = True if 'Remember' in request.form else False
         is_manager, valid_login = db_ops.confirm_login(creds)
-        print(is_manager, valid_login)
         if valid_login:
             session['username'] = creds['loginID']
-            session['admin'] = is_manager
             session['remember'] = remember_me
+            session['admin'] = is_manager
+            if is_manager:
+                return redirect(url_for('manager'))
             return redirect(url_for('welcome_page'))
 
     return render_template('login.html', developer='Liam Raehsler', posts=creds)
@@ -76,6 +77,31 @@ def welcome_page():
 
     return render_template('index.html', user=session['username'], developer='Liam Raehsler')
 
+@app.route("/index/manager_dashboard", methods=["POST", "GET"])
+def manager():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if 'admin' not in session or not session['admin']:
+        return redirect(url_for('welcome_page'))
+    return render_template('manager_dashboard.html', user=session['username'], developer='Liam Raehsler')
+
+@app.route("/index/manager_dashboard/new_manager", methods=["POST", "GET"])
+def register_manager():
+    posts = {'loginID': '', 'error':''}
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if 'admin' not in session or not session['admin']:
+        return redirect(url_for('welcome_page'))
+    if request.method == "POST":
+        if 'enter' in request.form:
+            posts['loginID'] = request.form['loginID']
+            if db_ops.search_customers(posts['loginID']):
+                db_ops.promote_to_manager(posts['loginID'])
+            else:
+                posts['error'] = 'That account is either already a manager or does not exist in the database.'
+        else:
+            return redirect(url_for('manager'))
+    return render_template('register_manager.html', developer='Liam Raehsler')
 
 @app.route("/index/catalog", methods=["POST", "GET"])
 def browse():
