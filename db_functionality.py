@@ -107,6 +107,7 @@ class db_operations:
             veryUseful INT DEFAULT 0,
             useful INT DEFAULT 0,
             useless INT DEFAULT 0,
+            avg_usefulness DECIMAL (3,2),
             commentDate DATETIME,
             PRIMARY KEY (commentID),
             FOREIGN KEY (ISBN) REFERENCES Book(ISBN)
@@ -282,7 +283,7 @@ class db_operations:
             successfully added to the database and False otherwise), a list of error codes, and a list of
             error messages that will be displayed on the user interface if invalid data is entered."""
 
-        result = {'success': True, 'message': [], 'errorCodes': [], 'duplicatePhone': False}
+        result = {'success': True, 'message': [], 'errorCodes': [], 'duplicatePhone': False, 'manager': False}
 
         # Valid password check
         if not (info['password'] == info['password2']):
@@ -296,24 +297,38 @@ class db_operations:
             result['errorCodes'].append(2)
             result['message'].append('Phone number must be a valid, 10-digit number.')
 
-        # unique customer username check
-        self.cursor.execute("SELECT COUNT(*) FROM customercredentials WHERE loginID = %s", (info['loginID'],))
-        if self.cursor.fetchone()[0] != 0:
-            result['success'] = False
-            result['errorCodes'].append(3)
-            result['message'].append('That username is taken, please select another.')
-
-        # if phone number is already taken, the address should also be the same
-        self.cursor.execute("SELECT * FROM customerpersonal WHERE phone = %s", (info['phone'],))
-        for entry in self.cursor.fetchall():
-            if entry[1] != info['address']:
+        # need to check if any users exist (if not, make this one a manager)
+        self.cursor.execute("""SELECT COUNT(*) FROM managercredentials""")
+        result_query = self.cursor.fetchone()
+        print(result_query[0])
+        if result_query[0]:
+            # unique customer username check
+            self.cursor.execute("SELECT COUNT(*) FROM customercredentials WHERE loginID = %s", (info['loginID'],))
+            if self.cursor.fetchone()[0] != 0:
                 result['success'] = False
-                result['errorCodes'].append(4)
-                result['message'].append('That phone number is already taken. Each phone number can only be'
-                                         ' used by one address.')
-                break
-            result['duplicatePhone'] = True
+                result['errorCodes'].append(3)
+                result['message'].append('That username is taken, please select another.')
 
+            # if phone number is already taken, the address should also be the same
+            self.cursor.execute("SELECT * FROM customerpersonal WHERE phone = %s", (info['phone'],))
+            for entry in self.cursor.fetchall():
+                if entry[1] != info['address']:
+                    result['success'] = False
+                    result['errorCodes'].append(4)
+                    result['message'].append('That phone number is already taken. Each phone number can only be'
+                                             ' used by one address.')
+                    break
+                result['duplicatePhone'] = True
+            self.cursor.execute("SELECT * FROM managerpersonal WHERE phone = %s", (info['phone'],))
+            for entry in self.cursor.fetchall():
+                if entry[1] != info['address']:
+                    result['success'] = False
+                    result['errorCodes'].append(4)
+                    result['message'].append('That phone number is already taken. Each phone number can only be'
+                                             ' used by one address.')
+                    break
+        else:
+            result['manager'] = True
         return result
 
     def add_customer(self, info, dup):
@@ -325,6 +340,28 @@ class db_operations:
                             (info['loginID'], info['firstName'], info['lastName'], info['salt'],
                              info['key'], int(info['phone'])))
         self.db.commit()
+
+    def add_manager(self, info):
+        """Take in a (valid) set of user information and create a new manager. Also need to check if the user is
+        currently a customer, and remove the user if so."""
+        self.cursor.execute("""SELECT COUNT(*) FROM managerpersonal WHERE phone=%s""", (int(info['phone']),))
+        if not self.cursor.fetchone()[0]:
+            self.cursor.execute("""INSERT INTO managerpersonal VALUES (%s,%s)""", (int(info['phone']), info['address']))
+        self.cursor.execute("""INSERT INTO managercredentials (loginID, firstName, lastName, salt, pass_key, phone)
+        VALUES (%s,%s,%s,%s,%s,%s)""", (info['loginID'], info['firstName'], info['lastName'], info['salt'],
+                            info['key'], int(info['phone'])))
+
+        self.db.commit()
+        self.cursor.execute("""SELECT COUNT(*) FROM customercredentials WHERE loginID=%s""", (info['loginID'],))
+        result = self.cursor.fetchone()
+        if result[0]:
+            self.cursor.execute("""DELETE FROM customerCredentials WHERE loginID=%s""", (info['loginID'],))
+            self.db.commit()
+            self.cursor.execute("""SELECT COUNT(*) FROM customerCredentials WHERE phone=%s""", (int(info['phone'])))
+            phone_count = self.cursor.fetchone()
+            if not phone_count[0]:
+                self.cursor.execute("""DELETE FROM customerPersonal WHERE phone=%s""", (int(info['phone'],)))
+                self.db.commit()
 
     def confirm_login(self, info):
         """Given a username and a password, confirm whether it is a valid account and check if it is a customer or
@@ -523,10 +560,11 @@ class db_operations:
         self.db.commit()
         return return_code
 
-    def get_comments(self, isbn):
-        """Given the ISBN of a book, get relevant information for all comments about that book."""
+    def get_comments(self, isbn, n):
+        """Given the ISBN of a book, get n relevant information for all comments about that book."""
         result = []
-        self.cursor.execute("""SELECT * FROM comment WHERE ISBN=%s""", (str(isbn),))
+        self.cursor.execute("""SELECT * FROM comment WHERE ISBN=%s ORDER BY avg_usefulness DESC LIMIT %s""",
+                            (str(isbn),n))
         for comment in self.cursor.fetchall():
             result.append(comment)
         return result
@@ -556,6 +594,14 @@ class db_operations:
             self.cursor.execute("UPDATE comment SET "+attrib_name+"="+attrib_name+"+1 WHERE commentID=%s",
                                 (commentID,))
             self.cursor.execute("""INSERT INTO rates VALUES (%s,%s,%s)""", (loginID, commentID, attrib_name))
+        self.db.commit()
+        self.update_comment_avg_score(commentID)
+
+    def update_comment_avg_score(self, commentID):
+        """Given a comment ID, update the average usefulness. This will only ever be called internally, so no need
+        for validity checks."""
+        self.cursor.execute("""UPDATE comment SET avg_usefulness=(2*veryUseful+useful)/(veryUseful+useful+useless)
+        WHERE commentID=%s""", (commentID,))
         self.db.commit()
 
     def search_customers(self, loginID):

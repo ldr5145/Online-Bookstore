@@ -67,6 +67,16 @@ By:
 {% if posts.book[11] > 0 %}
     <div class="main_form">
         <h2 align="center"><u>User Reviews:</u></h2>
+        <div id="review_order_div">
+            <form id="order_form" method="post">
+                <label>Show top</label>
+                <input type="number" id="n" name="n" value="20" min="1" max="99" style="width:30px;">
+                <label>most useful comments</label>
+                &nbsp;
+                <input type="submit" class="button" style="width:60px; height:20px;" id="enter" name="enter">
+            </form>
+            <br><br>
+        </div>
         {% for comment in posts.comments %}
         <div style="border:1px solid black; padding:10px;">
             <label><b>Username:</b> {{ comment[2] }}</label>

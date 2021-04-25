@@ -54,11 +54,14 @@ def new_account():
         user_info['password'] = request.form['password']
         user_info['password2'] = request.form['password2']
         result = db_ops.verify_new_customer_creds(user_info)
+        print(result)
         if result['success']:
             print('new account successfully created')
             user_info['salt'], user_info['key'] = db_ops.hash_password(user_info['password'])
-            print(user_info['salt'], user_info['key'])
-            db_ops.add_customer(user_info, result['duplicatePhone'])
+            if result['manager']:
+                db_ops.add_manager(user_info)
+            else:
+                db_ops.add_customer(user_info, result['duplicatePhone'])
             return redirect('/')
         else:
             errors = {'errorCodes': result['errorCodes'], 'messages': result['message']}
@@ -106,6 +109,7 @@ def browse():
 @app.route("/index/book_info/<isbn>", methods=["POST", "GET"])
 def display_book(isbn):
     posts = {'book': (), 'authors': [], 'comments': [], 'loginID': ''}
+    n = 20
     if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == "POST":
@@ -123,13 +127,15 @@ def display_book(isbn):
             db_ops.update_comment_score(session['username'], request.form['Useful'], 'useful')
         elif 'Useless' in request.form:
             db_ops.update_comment_score(session['username'], request.form['Useless'], 'useless')
+        elif 'enter' in request.form:
+            n = int(request.form['n'])
         else:
             book, authors = db_ops.get_single_book_info(request.form['ISBN'])
-            posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(request.form['ISBN']),
+            posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(request.form['ISBN'],n),
                      'loginID': session['username']}
     if isbn:
         book, authors = db_ops.get_single_book_info(isbn)
-        posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(isbn),
+        posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(isbn, n),
                  'loginID': session['username']}
     return render_template('book_info.html', developer='Liam Raehsler', posts=posts)
 
