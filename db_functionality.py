@@ -303,7 +303,8 @@ class db_operations:
         print(result_query[0])
         if result_query[0]:
             # unique customer username check
-            self.cursor.execute("SELECT COUNT(*) FROM customercredentials WHERE loginID = %s", (info['loginID'],))
+            self.cursor.execute("""SELECT COUNT(*) FROM customercredentials C, managercredentials M
+                                WHERE C.loginID = %s OR M.loginID=%s""", (info['loginID'],info['loginID']))
             if self.cursor.fetchone()[0] != 0:
                 result['success'] = False
                 result['errorCodes'].append(3)
@@ -362,6 +363,8 @@ class db_operations:
             if not phone_count[0]:
                 self.cursor.execute("""DELETE FROM customerPersonal WHERE phone=%s""", (int(info['phone']),))
                 self.db.commit()
+            self.update_book_scores()
+            self.update_comment_usefulness()
 
     def promote_to_manager(self, loginID):
         """Given a valid login ID, promote the user to a manager by removing their credentials from the customer
@@ -567,10 +570,15 @@ class db_operations:
             num_ratings = num_ratings+1 WHERE ISBN = %s""", (comment_info['score'], comment_info['ISBN']))
             return_code = 1
         self.db.commit()
-        self.cursor.execute("""UPDATE book SET avg_rating = total_rating_score / num_ratings WHERE 
-                            ISBN=%s""", (comment_info['ISBN'],))
-        self.db.commit()
+        self.update_average_book_rating(comment_info['ISBN'])
         return return_code
+
+    def update_average_book_rating(self, isbn):
+        """Maintenance function for updating the average rating of the book with the given ISBN. This should be
+        called any time the number of ratings/the total rating score are updated."""
+        self.cursor.execute("""UPDATE book SET avg_rating = total_rating_score / num_ratings WHERE 
+                                    ISBN=%s""", (isbn,))
+        self.db.commit()
 
     def get_comments(self, isbn, n):
         """Given the ISBN of a book, get n relevant information for all comments about that book."""
@@ -615,6 +623,15 @@ class db_operations:
         self.cursor.execute("""UPDATE comment SET avg_usefulness=(2*veryUseful+useful)/(veryUseful+useful+useless)
         WHERE commentID=%s""", (commentID,))
         self.db.commit()
+
+    def update_comment_usefulness(self):
+        """Maintenance function for updating all comment usefulness values. This should only be called in the case of
+        a customer account being deleted."""
+        self.cursor.execute("""UPDATE comment SET veryUseful=0, useful=0, useless=0, avg_usefulness=NULL""")
+        self.db.commit()
+        self.cursor.execute("""SELECT * FROM rates""")
+        for rating in self.cursor.fetchall():
+            self.update_comment_score(rating[0], rating[1], rating[2])
 
     def search_customers(self, loginID):
         """Given a single login ID, see if that customer exists on the database. Return true if so, false if not."""
@@ -688,6 +705,23 @@ class db_operations:
         if result:
             info['personalStatus'] = result[0]
         return info
+
+    def update_book_scores(self):
+        """This is a general maintenance function that should be called any time a customer's account is deleted.
+        This is because that customer may have rated a book, and although the comment itself will be removed from
+        the database due to cascading foreign key rules, the book stats will not be updated since it is only
+        calculated when a comment is added or updated."""
+        self.cursor.execute("""UPDATE book SET avg_rating=NULL, total_rating_score=0, num_ratings=0""")
+        self.db.commit()
+        self.cursor.execute("""SELECT * FROM comment""")
+        for comment in self.cursor.fetchall():
+            print(comment)
+            print(comment[3], comment[1])
+            self.cursor.execute("""UPDATE book SET total_rating_score=total_rating_score+%s,
+            num_ratings=num_ratings+1 WHERE ISBN=%s""", (comment[3],comment[1]))
+            self.db.commit()
+            self.update_average_book_rating(comment[1])
+
 
     def end_session(self):
         self.db.close()
