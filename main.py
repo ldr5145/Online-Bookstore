@@ -103,6 +103,37 @@ def register_manager():
             return redirect(url_for('manager'))
     return render_template('register_manager.html', developer='Liam Raehsler')
 
+@app.route("/index/manager_dashboard/new_book", methods=["POST", "GET"])
+def insert_book():
+    book_info = {'ISBN':'', 'title':'', 'authors': '', 'publisher':'', 'lang': '', 'publicationDate':'',
+                 'pageCount':'', 'stock': '', 'price': '', 'subject': ''}
+    error = ''
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if 'admin' not in session or not session['admin']:
+        return redirect(url_for('welcome_page'))
+    if request.method == "POST":
+        print(request.form)
+        if 'enter' in request.form:
+            book_info['ISBN'] = request.form['ISBN']
+            book_info['title'] = request.form['title']
+            book_info['authors'] = request.form['authors']
+            book_info['publisher'] = request.form['publishers']
+            book_info['lang'] = request.form['lang']
+            book_info['publicationDate'] = request.form['publicationDate']
+            book_info['pageCount'] = request.form['pageCount']
+            book_info['stock'] = request.form['stock']
+            book_info['price'] = request.form['price']
+            book_info['subject'] = request.form['subject']
+            author_list = [i for i in book_info['authors'].split('/')]
+            if db_ops.insert_book(book_info, author_list):
+                return redirect(url_for('manager'))
+            else:
+                error = 'Some of the information entered is incompatible with the database.'
+        else:
+            return redirect(url_for('manager'))
+    return render_template('insert_book.html', developer='Liam Raehsler', posts=book_info, error=error)
+
 @app.route("/index/catalog", methods=["POST", "GET"])
 def browse():
     posts = {'results': {}, 'filters': {}, 'filter_semantics': 1, 'startDate': '', 'endDate': '', 'order': 0,

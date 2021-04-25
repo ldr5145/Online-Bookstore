@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block form_name %}main_form{% endblock %}
+{% block style %}
+{{ super() }}
+{% endblock %}
+{% block title %}Add a new book{% endblock %}
+{% block head_title %}Add a new book to inventory{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <form id="main_form" method="post">
+        <label>ISBN:</label>
+        <br>
+        <input type="text" id="ISBN" name="ISBN" minlength="13" maxlength="13" class="text_input"
+               value="{{ posts.ISBN }}" required>
+        <br><br>
+        <label>Title:</label>
+        <br>
+        <input type="text" id="title" name="title" class="text_input" value="{{ posts.title }}" required>
+        <br><br>
+        <label>Author(s) (separate multiple authors with a "/"):</label>
+        <br>
+        <input type="text" id="authors" name="authors" class="text_input" value="{{ posts.authors }}" required>
+        <br><br>
+        <label>Publisher(s):</label>
+        <br>
+        <input type="text" id="publishers" name="publishers" class="text_input" value="{{ posts.publisher }}" required>
+        <br><br>
+        <label>Language:</label>
+        <br>
+        <input type="text" id="lang" name="lang" class="text_input" value="{{ posts.lang }}" required>
+        <br><br>
+        <label>Date of publication:</label>
+        <br>
+        <input type="date" id="publicationDate" name="publicationDate" class="text_input"
+               value="{{ posts.publicationDate }}" required>
+        <br><br>
+        <label>Page count:</label>
+        <br>
+        <input type="number" id="pageCount" name="pageCount" min="0" class="text_input" value="{{ posts.pageCount }}" required>
+        <br><br>
+        <label>Stock:</label>
+        <br>
+        <input type="number" id="stock" name="stock" min="0" class="text_input" value="{{ posts.stock }}" required>
+        <br><br>
+        <label>Price:</label>
+        <br>
+        <input type="number" id="price" name="price" min="0" step="0.01" class="text_input" value="{{ posts.price }}" required>
+        <br><br>
+        <label>Subject:</label>
+        <br>
+        <input type="text" id="subject" name="subject" class="text_input" value="{{ posts.subject }}">
+        <br><br>
+        <input type="submit" id="enter" name="enter" class="button" value="Add book">
+        <input type="submit" id="cancel" name="cancel" class="button" value="Return to catalog" onclick="cancelClicked()">
+        {% if error %}
+            <br><br>
+            <error_label>{{ error }}</error_label>
+        {% endif %}
+    </form>
+</div>
+<script>
+    function cancelClicked(){
+        document.getElementById("ISBN").value=" ";
+        document.getElementById("title").value=" ";
+        document.getElementById("authors").value=" ";
+        document.getElementById("publishers").value=" ";
+        document.getElementById("lang").value=" ";
+        document.getElementById("publicationDate").value="2000-01-01";
+        document.getElementById("pageCount").value=0;
+        document.getElementById("stock").value=0;
+        document.getElementById("price").value=0;
+    }
+</script>
+{% endblock %}

@@ -28,4 +28,3 @@ def extract_authors(data):
     return authors, [i[:2]+i[3:]+[float(decimal(random.randrange(100, 10001)/100)),
                                   ] for i in data]
 
-

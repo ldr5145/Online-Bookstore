@@ -262,6 +262,30 @@ class db_operations:
                         self.db.commit()
         print("done")
 
+    def insert_book(self, book, authors):
+        """Given all of the needed information for a book, add it to the database. NOTE: not all validity checks are in
+        place, so should do a try-catch here to ensure erroneous data is not inserted into the database."""
+        try:
+            self.cursor.execute(
+                """INSERT INTO book (ISBN, title, publisher, lang, publicationDate, pageCount, stock, price, subject) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                (book['ISBN'], book['title'], book['publisher'], book['lang'],
+                 datetime.datetime.strptime(book['publicationDate'], '%Y-%m-%d').date(),
+                 int(book['pageCount']), int(book['stock']), float(book['price']), book['subject']))
+            for auth in authors:
+                self.cursor.execute("""SELECT COUNT(*) FROM author WHERE name=%s""", (auth,))
+                if not self.cursor.fetchone()[0]:
+                    self.cursor.execute("""INSERT INTO author (name) VALUES (%s)""", (auth,))
+            self.db.commit()
+            for auth in authors:
+                self.cursor.execute("""SELECT ID from author WHERE name=%s""", (auth,))
+                id = self.cursor.fetchone()[0]
+                self.cursor.execute("""INSERT INTO wrote VALUES (%s, %s)""", (id, book['ISBN']))
+                self.db.commit()
+            return True
+        except Exception as e:
+            return False
+
     def hash_password(self, password):
         salt = os.urandom(32)
         key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
