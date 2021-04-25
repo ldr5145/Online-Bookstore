@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block form_name %}main_form{% endblock %}
+{% block style %}
+{{ super() }}
+    .text_input{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+{% endblock %}
+{% block title %}Manager Dashboard{% endblock %}
+{% block head_title %}Manager Dashboard - Restock inventory{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <form id="main_form" method="post">
+        <label>ISBN:</label>
+        <br>
+        <input type="text" id="ISBN" name="ISBN" minlength="13" maxlength="13" class="text_input" value="{{ posts.ISBN }}"
+               required>
+        <br><br>
+        <label>Stock:</label>
+        <br>
+        <input type="number" id="stock" name="stock" min="0" class="text_input" value="{{ posts.stock }}" required>
+        <br><br>
+        <input type="submit" id="cancel" name="cancel" value="Return to dashboard" class="button" onclick="cancelPressed()">
+        <input type="submit" id="enter" name="enter" value="Restock book" class="button">
+        {% if error %}
+        <br><br>
+        <error_label>{{ error }}</error_label>
+        {% endif %}
+    </form>
+</div>
+<script>
+    function cancelPressed() {
+        document.getElementById("ISBN").value=" ";
+        document.getElementById("stock").value=0;
+    }
+</script>
+{% endblock %}

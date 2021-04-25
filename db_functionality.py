@@ -547,6 +547,16 @@ class db_operations:
         self.db.commit()
         return True
 
+    def restock_book(self, isbn, quantity):
+        """Given an isbn of a book and a quantity, add that many books to inventory. If successful, return true.
+        Otherwise, return false (this means the user entered an ISBN that is not present in the database)"""
+        self.cursor.execute("""SELECT COUNT(*) FROM book WHERE ISBN=%s""", (isbn,))
+        if self.cursor.fetchone()[0]:
+            self.cursor.execute("""UPDATE book set stock=stock+%s WHERE ISBN=%s""", (quantity, isbn))
+            self.db.commit()
+            return True
+        return False
+
     def get_user_orders(self, loginID):
         """Given a unique login ID, find the details about all of the orders associated with that user and return in a
         single data structure. Note: only need the order number, title/quantity of books, and date. Order results by

@@ -3,8 +3,8 @@
 {% block style %}
 {{ super() }}
 {% endblock %}
-{% block title %}Add a new book{% endblock %}
-{% block head_title %}Add a new book to inventory{% endblock %}
+{% block title %}Manager Dashboard{% endblock %}
+{% block head_title %}Manager Dashboard - Add a new book to inventory{% endblock %}
 {% block dev_id %}{{ super() }}{% endblock %}
 {% block submit_form %}
 <div class="main_form">
@@ -51,8 +51,8 @@
         <br>
         <input type="text" id="subject" name="subject" class="text_input" value="{{ posts.subject }}">
         <br><br>
-        <input type="submit" id="enter" name="enter" class="button" value="Add book">
         <input type="submit" id="cancel" name="cancel" class="button" value="Return to catalog" onclick="cancelClicked()">
+        <input type="submit" id="enter" name="enter" class="button" value="Add book">
         {% if error %}
             <br><br>
             <error_label>{{ error }}</error_label>

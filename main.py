@@ -113,7 +113,6 @@ def insert_book():
     if 'admin' not in session or not session['admin']:
         return redirect(url_for('welcome_page'))
     if request.method == "POST":
-        print(request.form)
         if 'enter' in request.form:
             book_info['ISBN'] = request.form['ISBN']
             book_info['title'] = request.form['title']
@@ -133,6 +132,27 @@ def insert_book():
         else:
             return redirect(url_for('manager'))
     return render_template('insert_book.html', developer='Liam Raehsler', posts=book_info, error=error)
+
+@app.route("/index/manager_dashboard/restock", methods=["POST","GET"])
+def restock():
+    posts = {'ISBN':'', 'stock':''}
+    error = ''
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if 'admin' not in session or not session['admin']:
+        return redirect(url_for('welcome_page'))
+    if request.method=="POST":
+        if 'enter' in request.form:
+            posts['ISBN'] = request.form['ISBN']
+            posts['stock'] = request.form['stock']
+            if db_ops.restock_book(posts['ISBN'], posts['stock']):
+                print("Book successfully restocked.")
+                return redirect(url_for('manager'))
+            else:
+                error = 'that book does not exist in the database.'
+        else:
+            return redirect(url_for('manager'))
+    return render_template('restock.html', developer='Liam Raehsler', posts=posts, error=error)
 
 @app.route("/index/catalog", methods=["POST", "GET"])
 def browse():
