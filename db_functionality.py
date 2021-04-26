@@ -3,6 +3,7 @@ import datetime
 import re
 import os
 import hashlib
+import operator
 
 
 class db_operations:
@@ -788,6 +789,43 @@ class db_operations:
             publisher_results.append(publisher)
 
         return book_results, author_results, publisher_results
+
+    def get_customer_statistics(self, n):
+        """Function that takes in a result limit n and returns two lists of the top ranked customers. The lists returned
+        are listed below in order:
+            1. Most trusted users, ranked by the difference of users who trust them and users who distrust them
+            2. Most useful users, ranked by the average usefulness score of all of their comments combined"""
+        trusted = []
+        useful = []
+
+        trust_dict = {}
+        self.cursor.execute("""select otherLoginID, COUNT(loginID) as score_trusted
+        FROM trusts GROUP BY otherLoginID, trustStatus HAVING trustStatus='TRUSTED'""")
+        for cust in self.cursor.fetchall():
+            trust_dict[cust[0]] = cust[1]
+        self.cursor.execute("""SELECT otherLoginID, COUNT(loginID) as score_trusted FROM trusts
+        GROUP BY otherLoginID, trustStatus HAVING trustStatus='UNTRUSTED'""")
+        for cust in self.cursor.fetchall():
+            if cust[0] in trust_dict:
+                trust_dict[cust[0]] = trust_dict[cust[0]] - cust[1]
+            else:
+                trust_dict[cust[0]] = -cust[1]
+        m = 0
+        n_temp = n
+        while n_temp > m and len(trust_dict):
+            loginID = max(trust_dict.items(), key=operator.itemgetter(1))[0]
+            self.cursor.execute("""SELECT firstName, lastName FROM customercredentials WHERE loginID=%s""", (loginID,))
+            name = self.cursor.fetchone()
+            trusted.append([loginID, name[0], name[1], trust_dict[loginID]])
+            del trust_dict[loginID]
+            n_temp = n_temp-1
+
+        self.cursor.execute("""SELECT C.loginID, firstName, lastName, AVG(avg_usefulness) as total_avg
+        FROM comment C, customercredentials CR WHERE C.loginID = CR.loginID GROUP BY C.loginID
+        ORDER BY total_avg DESC LIMIT %s""", (n,))
+        for cust in self.cursor.fetchall():
+            useful.append(cust)
+        return trusted, useful
 
     def end_session(self):
         self.db.close()

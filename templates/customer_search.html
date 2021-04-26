@@ -23,9 +23,9 @@
         <br><br>
         <input type="submit" id="search" value="Search" class="button">
     </form>
-    {% for e in error_message %}
+    {% if error_message %}
         <br><br>
-        <error_label>{{ e }}</error_label>
-    {% endfor %}
+        <error_label>{{ error_message }}</error_label>
+    {% endif %}
 </div>
 {% endblock %}

@@ -10,14 +10,14 @@
     }
 {% endblock %}
 {% block title %}Manager Dashboard{% endblock %}
-{% block head_title %}Manager Dashboard{% endblock %}
+{% block head_title %}Manager Dashboard - Book Statistics{% endblock %}
 {% block dev_id %}{{ super() }}{% endblock %}
 {% block submit_form %}
  <div class="main_form" style="width: 600px;">
      <div id="review_order_div">
         <form id="order_form" method="post">
             <label>Show top</label>
-            <input type="number" id="n" name="n" value="{{ posts.n }}" min="1" max="99" style="width:30px;">
+            <input type="number" id="n" name="n" value="{{ posts.n }}" min="1" max="99" style="width:30px;" required>
             <label>best-selling results</label>
             <br><br>
             <label>Between</label>

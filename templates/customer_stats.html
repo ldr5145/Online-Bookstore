@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block form_name %}main_form{% endblock %}
+{% block style %}
+{{ super() }}
+    a:hover{
+        color: White;
+    }
+    table, th, td{
+        border: 1px solid black;
+    }
+{% endblock %}
+{% block title %}Manager Dashboard{% endblock %}
+{% block head_title %}Manager Dashboard - Customer Statistics{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+ <div class="main_form" style="width: 600px;">
+     <div id="review_order_div">
+        <form id="order_form" method="post">
+            <label>Show top</label>
+            <input type="number" id="n" name="n" value="{{ posts.n }}" min="1" max="99" style="width:30px;" required>
+            <label>users.</label>
+            <input type="submit" class="button" style="width:60px; height:20px;" id="enter" name="enter">
+        </form>
+    </div>
+     <br><br>
+     <div id="table_trusted">
+        <h2 align="center"><u>Most trusted users:</u></h2>
+        {% for cust in posts.trusted %}
+            {% if loop.first %}
+                <table align="center">
+                    <tr>
+                        <th>Username</th>
+                        <th>First name</th>
+                        <th>Last name</th>
+                        <th>Trust score</th>
+                    </tr>
+            {% endif %}
+                    <tr>
+                        <td>{{ cust[0] }}</td>
+                        <td>{{ cust[1] }}</td>
+                        <td>{{ cust[2] }}</td>
+                        <td align="right">{{ cust[3] }}</td>
+                    </tr>
+            {% if loop.last %}
+                </table>
+            {% endif %}
+        {% endfor %}
+     </div>
+     <br><br>
+     <div id="table_useful">
+        <h2 align="center"><u>Most useful users:</u></h2>
+        {% for cust in posts.useful %}
+            {% if loop.first %}
+                <table align="center">
+                    <tr>
+                        <th>Username</th>
+                        <th>First Name</th>
+                        <th>Last name</th>
+                        <th>Average comment usefulness</th>
+                    </tr>
+            {% endif %}
+                    <tr>
+                        <td>{{ cust[0] }}</td>
+                        <td>{{ cust[1] }}</td>
+                        <td>{{ cust[2] }}</td>
+                        <td align="right">{{ cust[3] }}</td>
+                    </tr>
+            {% if loop.last %}
+                </table>
+            {% endif %}
+        {% endfor %}
+     </div>
+     <br><br>
+     <form id="action_form" method="post">
+         <input type="submit" style="float:right" id="cancel" name="cancel" value="Return to dashboard" class="button">
+     </form>
+ </div>
+{% endblock %}
