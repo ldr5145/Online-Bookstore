@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block form_name %}main_form{% endblock %}
+{% block style %}
+{{ super() }}
+    .text_input{
+        width: 300px;
+        height: 30px;
+        border: none;
+        border-radius: 3px;
+        padding-left: 8px;
+    }
+{% endblock %}
+{% block title %}Manager Dashboard{% endblock %}
+{% block head_title %}Manager Dashboard - Remove a Customer{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form">
+    <form id="main_form" method="post">
+        <label>Customer login ID:</label>
+        <br>
+        <input type="text" id="loginID" name="loginID" minlength="1" maxlength="30" class="text_input"
+               value="{{ posts.loginID }}" required>
+        <br><br>
+        <input type="submit" id="cancel" name="cancel" value="Return to dashboard" class="button" onclick="cancelPressed()">
+        <input type="submit" id="enter" name="enter" value="Remove customer" class="button">
+        {% if posts.error %}
+        <br><br>
+        <error_label>{{ posts.error }}</error_label>
+        {% endif %}
+    </form>
+</div>
+<script>
+    function cancelPressed() {
+        document.getElementById("loginID").value=" ";
+    }
+</script>
+{% endblock %}

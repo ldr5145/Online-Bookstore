@@ -189,6 +189,22 @@ def customer_stats():
             return redirect(url_for('manager'))
     return render_template("customer_stats.html", developer='Liam Raehsler', posts=posts)
 
+@app.route("/index/manager_dashboard/remove_customer", methods=["POST", "GET"])
+def remove_customer():
+    posts = {'loginID':'', 'error':''}
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if 'admin' not in session or not session['admin']:
+        return redirect(url_for('welcome_page'))
+    if request.method == "POST":
+        if 'enter' in request.form:
+            posts['loginID'] = request.form['loginID']
+            if db_ops.remove_customer(posts['loginID']):
+                return redirect(url_for('manager'))
+            else:
+                posts['error'] = "That customer does not exist in the database."
+    return render_template("remove_customer.html", developer='Liam Raehsler', posts=posts)
+
 @app.route("/index/catalog", methods=["POST", "GET"])
 def browse():
     posts = {'results': {}, 'filters': {}, 'filter_semantics': 1, 'startDate': '', 'endDate': '', 'order': 0,

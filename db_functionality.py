@@ -827,5 +827,19 @@ class db_operations:
             useful.append(cust)
         return trusted, useful
 
+    def remove_customer(self, loginID):
+        """Given the login ID of a customer, remove the customer from the database. Note that the ID passed in to
+        this function is unchecked and so proper validity checks need to be in place."""
+        # try:
+        self.cursor.execute("""DELETE FROM customercredentials WHERE loginID=%s""", (loginID,))
+        self.db.commit()
+        self.cursor.execute("""DELETE FROM customerpersonal WHERE phone NOT IN 
+        (SELECT phone FROM customercredentials)""")
+        self.update_book_scores()
+        self.update_comment_usefulness()
+        return True
+        # except Exception as e:
+        #     return False
+
     def end_session(self):
         self.db.close()
