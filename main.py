@@ -154,6 +154,25 @@ def restock():
             return redirect(url_for('manager'))
     return render_template('restock.html', developer='Liam Raehsler', posts=posts, error=error)
 
+@app.route("/index/manager_dashboard/book_statistics", methods=["POST", "GET"])
+def book_stats():
+    posts = {'n': 10, 'startDate': '', 'endDate': '', 'books':[], 'authors':[], 'publishers':[]}
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if 'admin' not in session or not session['admin']:
+        return redirect(url_for('welcome_page'))
+    if request.method == "POST":
+        if 'enter' in request.form:
+            posts['n'] = int(request.form['n'])
+            posts['startDate'] = request.form['startDate']
+            posts['endDate'] = request.form['endDate']
+            posts['books'], posts['authors'], posts['publishers'] = db_ops.get_book_statistics(posts['n'],
+                                                                                               posts['startDate'],
+                                                                                               posts['endDate'])
+        elif 'cancel' in request.form:
+            return redirect(url_for('manager'))
+    return render_template("book_stats.html", developer='Liam Raehsler', posts=posts)
+
 @app.route("/index/catalog", methods=["POST", "GET"])
 def browse():
     posts = {'results': {}, 'filters': {}, 'filter_semantics': 1, 'startDate': '', 'endDate': '', 'order': 0,

@@ -756,6 +756,38 @@ class db_operations:
             self.db.commit()
             self.update_average_book_rating(comment[1])
 
+    def get_book_statistics(self, n, startDate, endDate):
+        """Function that takes in a result limit n and a range of valid publication dates (all specified by the user)
+        and returns three lists. The lists returned are listed below in order:
+            1. Best-selling books in terms of copies sold in the time zone
+            2. Best-selling authors in terms of copies sold in the time zone
+            3. Best-selling publishers in terms of copies sold in the time zone"""
+        book_results = []
+        author_results = []
+        publisher_results = []
+
+        self.cursor.execute("""SELECT title, B.ISBN, SUM(quantity) as total FROM productof P, book B WHERE 
+        B.ISBN = P.ISBN AND orderNumber IN 
+        (SELECT orderNumber FROM orderlog WHERE orderDate >= %s AND orderDate <= %s) GROUP BY ISBN 
+        ORDER BY total DESC LIMIT %s""",(startDate, endDate, n))
+        for book in self.cursor.fetchall():
+            book_results.append(book)
+
+        self.cursor.execute("""SELECT name, SUM(quantity) as total FROM productof P, author A, wrote W
+         WHERE ID=authorID AND W.ISBN = P.ISBN AND orderNumber IN 
+        (SELECT orderNumber FROM orderlog WHERE orderDate >= %s AND orderDate <= %s) GROUP BY name 
+        ORDER BY total DESC LIMIT %s""", (startDate, endDate, n))
+        for author in self.cursor.fetchall():
+            author_results.append(author)
+
+        self.cursor.execute("""SELECT publisher, SUM(quantity) as total FROM productof P, book B
+                 WHERE B.ISBN = P.ISBN AND orderNumber IN 
+                (SELECT orderNumber FROM orderlog WHERE orderDate >= %s AND orderDate <= %s) GROUP BY publisher 
+                ORDER BY total DESC LIMIT %s""", (startDate, endDate, n))
+        for publisher in self.cursor.fetchall():
+            publisher_results.append(publisher)
+
+        return book_results, author_results, publisher_results
 
     def end_session(self):
         self.db.close()

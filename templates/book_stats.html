@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block form_name %}main_form{% endblock %}
+{% block style %}
+{{ super() }}
+    a:hover{
+        color: White;
+    }
+    table, th, td{
+        border: 1px solid black;
+    }
+{% endblock %}
+{% block title %}Manager Dashboard{% endblock %}
+{% block head_title %}Manager Dashboard{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+ <div class="main_form" style="width: 600px;">
+     <div id="review_order_div">
+        <form id="order_form" method="post">
+            <label>Show top</label>
+            <input type="number" id="n" name="n" value="{{ posts.n }}" min="1" max="99" style="width:30px;">
+            <label>best-selling results</label>
+            <br><br>
+            <label>Between</label>
+            <input type="date" style="width:150px" id="startDate" name="startDate" value="{{ posts.startDate}}" required>
+            <label>and</label>
+            <input type="date" style="width:150px" id="endDate" name="endDate" value="{{ posts.endDate }}" required>
+            <input type="submit" class="button" style="width:60px; height:20px;" id="enter" name="enter">
+        </form>
+    </div>
+     <br><br>
+     <div id="table_books">
+        <h2 align="center"><u>Best-selling books:</u></h2>
+        {% for book in posts.books %}
+            {% if loop.first %}
+                <table align="center">
+                    <tr>
+                        <th>Title</th>
+                        <th>ISBN</th>
+                        <th>Copies sold</th>
+                    </tr>
+            {% endif %}
+                    <tr>
+                        <td>{{ book[0] }}</td>
+                        <td>{{ book[1] }}</td>
+                        <td align="right">{{ book[2] }}</td>
+                    </tr>
+            {% if loop.last %}
+                </table>
+            {% endif %}
+        {% endfor %}
+     </div>
+     <br><br>
+     <div id="table_authors">
+        <h2 align="center"><u>Best-selling authors:</u></h2>
+        {% for author in posts.authors %}
+            {% if loop.first %}
+                <table align="center">
+                    <tr>
+                        <th>Author name</th>
+                        <th>Copies sold</th>
+                    </tr>
+            {% endif %}
+                    <tr>
+                        <td>{{ author[0] }}</td>
+                        <td align="right">{{ author[1] }}</td>
+                    </tr>
+            {% if loop.last %}
+                </table>
+            {% endif %}
+        {% endfor %}
+     </div>
+     <br><br>
+     <div id="table_publishers">
+        <h2 align="center"><u>Best-selling publishers:</u></h2>
+        {% for publisher in posts.publishers %}
+            {% if loop.first %}
+                <table align="center">
+                    <tr>
+                        <th>Publisher name</th>
+                        <th>Copies sold</th>
+                    </tr>
+            {% endif %}
+                    <tr>
+                        <td>{{ publisher[0] }}</td>
+                        <td align="right">{{ publisher[1] }}</td>
+                    </tr>
+            {% if loop.last %}
+                </table>
+            {% endif %}
+        {% endfor %}
+     </div>
+     <br><br>
+     <form id="action_form" method="post">
+         <input type="submit" style="float:right" id="cancel" name="cancel" value="Return to dashboard" class="button">
+     </form>
+ </div>
+{% endblock %}
