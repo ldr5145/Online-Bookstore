@@ -129,11 +129,11 @@ class db_operations:
         # Return Request
         self.cursor.execute(
             """CREATE TABLE ReturnRequest (
-            requestID INT,
+            requestID INT AUTO_INCREMENT,
             managerLoginID VARCHAR(30),
             orderNumber INT NOT NULL,
             requestDate DATE,
-            ISBN INT,
+            ISBN VARCHAR(13) NOT NULL,
             quantity SMALLINT,
             PRIMARY KEY (requestID),
             FOREIGN KEY (managerLoginID) REFERENCES ManagerCredentials(loginID)
@@ -434,6 +434,16 @@ class db_operations:
 
         return manager, valid_user
 
+    def is_super_manager(self, loginID):
+        """Utility function to return a boolean value whether or not the login ID entered is the ID of the
+        system super manager."""
+        self.cursor.execute("""SELECT managerID FROM managercredentials WHERE loginID=%s""", (loginID,))
+        user_key = self.cursor.fetchone()[0]
+        self.cursor.execute("""SELECT MIN(managerID) FROM managercredentials""")
+        if user_key == self.cursor.fetchone()[0]:
+            return True
+        return False
+
     def valid_book(self, info):
         """Given an ISBN, find the book in the database and return the price, a boolean indicating whether or not
         it exists, and the stock. NOTE: we need to return the stock because if the stock is 0 but we found the book
@@ -501,7 +511,8 @@ class db_operations:
             query_sections += " ORDER BY publicationDate"
         elif order == '1':
             query_sections += "ORDER BY avg_rating"
-
+        elif order == '2':
+            query_sections += "" # need to implement this
         # if descending is true, add descending specification
         if int(descending):
             query_sections += " DESC"
@@ -560,13 +571,14 @@ class db_operations:
 
     def get_user_orders(self, loginID):
         """Given a unique login ID, find the details about all of the orders associated with that user and return in a
-        single data structure. Note: only need the order number, title/quantity of books, and date. Order results by
+        single data structure. Note: only need the order number, title/quantity of books, and date.
+        Also will include the ISBN of each book to use in the return requests module. Order results by
         date from newest to oldest."""
         order_details = {}
         self.cursor.execute("""SELECT orderNumber, orderDate FROM orderlog WHERE loginID=%s 
         ORDER BY orderDate DESC, orderNumber DESC""", (loginID,))
         for order in self.cursor.fetchall():
-            order_details[str(order[0])] = {'title': [], 'quantity': []}
+            order_details[str(order[0])] = {'title': [], 'quantity': [], 'ISBN': []}
             # this line only needs to execute once, but its easier to do it like this.
             order_details[str(order[0])]['date'] = order[1]
             self.cursor.execute("""SELECT ISBN FROM orderlog O INNER JOIN productof P ON O.orderNumber = P.orderNumber
@@ -579,6 +591,7 @@ class db_operations:
                     quantity = details[1]
                     order_details[str(order[0])]['title'].append(title)
                     order_details[str(order[0])]['quantity'].append(quantity)
+                    order_details[str(order[0])]['ISBN'].append(book[0])
         return order_details
 
     def add_comment(self, comment_info):
@@ -830,16 +843,49 @@ class db_operations:
     def remove_customer(self, loginID):
         """Given the login ID of a customer, remove the customer from the database. Note that the ID passed in to
         this function is unchecked and so proper validity checks need to be in place."""
-        # try:
-        self.cursor.execute("""DELETE FROM customercredentials WHERE loginID=%s""", (loginID,))
+        try:
+            self.cursor.execute("""SELECT COUNT(*) FROM customercredentials WHERE loginID=%s""", (loginID,))
+            if not self.cursor.fetchone()[0]:
+                return False
+            self.cursor.execute("""DELETE FROM customercredentials WHERE loginID=%s""", (loginID,))
+            self.db.commit()
+            self.cursor.execute("""DELETE FROM customerpersonal WHERE phone NOT IN 
+            (SELECT phone FROM customercredentials)""")
+            self.db.commit()
+            self.update_book_scores()
+            self.update_comment_usefulness()
+            return True
+        except Exception as e:
+            return False
+
+    def remove_manager(self, loginID):
+        """Given a login ID of a manager, remove the manager from the database. Note that the ID passed in to this
+        function is unchecked and so proper validity checks need to be in place. However, this function will only be
+        called after an authority validation has taken place, so we do not need to ensure that the caller is a
+        super-manager."""
+        try:
+            self.cursor.execute("""SELECT COUNT(*) FROM managercredentials WHERE loginID=%s""", (loginID,))
+            if not self.cursor.fetchone()[0]:
+                return False
+            self.cursor.execute("""DELETE FROM managercredentials WHERE loginID=%s""", (loginID,))
+            self.db.commit()
+            self.cursor.execute("""DELETE FROM managerpersonal WHERE phone NOT IN 
+            (SELECT phone FROM customercredentials)""")
+            self.db.commit()
+            return True
+        except Exception as e:
+            return False
+
+    def request_return(self, orderNumber, ISBN, quantity):
+        """Given details needed to locate a book from a certain order and a quantity, create a return request for
+        quantity amount of that book."""
+        print(orderNumber, ISBN, quantity)
+        self.cursor.execute("""SELECT orderDate FROM orderlog WHERE orderNumber=%s""", (orderNumber,))
+        date = self.cursor.fetchone()[0]
+
+        self.cursor.execute("""INSERT INTO returnrequest (orderNumber, requestDate, ISBN, quantity)
+        VALUES (%s,%s,%s,%s)""", (orderNumber, date, ISBN, quantity))
         self.db.commit()
-        self.cursor.execute("""DELETE FROM customerpersonal WHERE phone NOT IN 
-        (SELECT phone FROM customercredentials)""")
-        self.update_book_scores()
-        self.update_comment_usefulness()
-        return True
-        # except Exception as e:
-        #     return False
 
     def end_session(self):
         self.db.close()

@@ -11,7 +11,7 @@
     }
 {% endblock %}
 {% block title %}Manager Dashboard{% endblock %}
-{% block head_title %}Manager Dashboard - Remove a Customer{% endblock %}
+{% block head_title %}Manager Dashboard - Remove a Customer/Manager{% endblock %}
 {% block dev_id %}{{ super() }}{% endblock %}
 {% block submit_form %}
 <div class="main_form">
@@ -22,7 +22,7 @@
                value="{{ posts.loginID }}" required>
         <br><br>
         <input type="submit" id="cancel" name="cancel" value="Return to dashboard" class="button" onclick="cancelPressed()">
-        <input type="submit" id="enter" name="enter" value="Remove customer" class="button">
+        <input type="submit" id="enter" name="enter" value="Remove user" class="button">
         {% if posts.error %}
         <br><br>
         <error_label>{{ posts.error }}</error_label>

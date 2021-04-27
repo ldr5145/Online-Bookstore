@@ -97,6 +97,7 @@ def register_manager():
             posts['loginID'] = request.form['loginID']
             if db_ops.search_customers(posts['loginID']):
                 db_ops.promote_to_manager(posts['loginID'])
+                return redirect(url_for('manager'))
             else:
                 posts['error'] = 'That account is either already a manager or does not exist in the database.'
         else:
@@ -189,7 +190,7 @@ def customer_stats():
             return redirect(url_for('manager'))
     return render_template("customer_stats.html", developer='Liam Raehsler', posts=posts)
 
-@app.route("/index/manager_dashboard/remove_customer", methods=["POST", "GET"])
+@app.route("/index/manager_dashboard/remove_user", methods=["POST", "GET"])
 def remove_customer():
     posts = {'loginID':'', 'error':''}
     if 'username' not in session:
@@ -201,9 +202,14 @@ def remove_customer():
             posts['loginID'] = request.form['loginID']
             if db_ops.remove_customer(posts['loginID']):
                 return redirect(url_for('manager'))
+            elif db_ops.is_super_manager(session['username']) and db_ops.remove_manager(posts['loginID']):
+                return redirect(url_for('manager'))
             else:
-                posts['error'] = "That customer does not exist in the database."
-    return render_template("remove_customer.html", developer='Liam Raehsler', posts=posts)
+                posts['error'] = """That user does not exist in the database or you are trying to remove a manager and 
+                do not have the proper credentials."""
+        elif 'cancel' in request.form:
+            return redirect(url_for('manager'))
+    return render_template("remove_user.html", developer='Liam Raehsler', posts=posts)
 
 @app.route("/index/catalog", methods=["POST", "GET"])
 def browse():
@@ -427,6 +433,16 @@ def empty_cart():
     if 'cart' in session:
         return redirect(url_for('cart_confirm'))
     return render_template('empty_cart.html', developer='Liam Raehsler')
+
+@app.route("/index/return_request", methods=["GET", "POST"])
+def return_request():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if request.method == "POST":
+        print(request.form)
+        db_ops.request_return(request.form['orderID'], str(request.form['ISBN']), request.form['quantity'])
+    posts = db_ops.get_user_orders(session['username'])
+    return render_template("return_request.html", developer='Liam Raehsler', posts=posts)
 
 @app.route("/index/customer_archives", methods=["GET","POST"])
 def customer_search():

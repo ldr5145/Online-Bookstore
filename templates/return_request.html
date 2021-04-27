@@ -1,0 +1,63 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+.inline {
+  display: inline;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 1em;
+  font-family: serif;
+}
+.link-button:focus {
+  outline: none;
+}
+.link-button:active {
+  color:red;
+}
+{% endblock %}
+{% block title %}Request a return{% endblock %}
+{% block head_title %}Request a return{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+<div class="main_form" style="width:600px">
+    <label>Select any of the books from your previous orders below and select a quantity to request a return.
+    Click <a href="#">here</a> to view your past return requests.</label>
+    <br><br>
+    <div id="orders_div">
+        {% for order_number, details in posts.items() %}
+            <label>Order ID: {{ order_number }}. Date Processed: {{ details.date }}</label>
+            <br>
+            <table id="table{{ order_number }}" style="width:100%">
+                <tr>
+                    <th>Title</th>
+                    <th>Quantity</th>
+                    <th>Return Amount</th>
+                    <th>Submit</th>
+                </tr>
+                {% for i in range(details.title|length) %}
+                <form class="inline" method="post">
+                    <tr>
+                        <td>{{ details.title[i] }}</td>
+                        <td align="right">{{ details.quantity[i] }}</td>
+                        <td align="right" style="width:30px"><input style="width:50px; text-align:right" type="number"
+                                                                    name="quantity" min="1"
+                                   max="{{ details.quantity[i] }}" value="1"></td>
+                        <input type="hidden" name="orderID" value="{{ order_number }}">
+                        <td><button type="submit" name="ISBN" value="{{ details.ISBN[i] }}" class="link-button">
+                        Return this book
+                      </button></td>
+                    </tr>
+                </form>
+                {% endfor %}
+            </table>
+            <br>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
