@@ -130,26 +130,23 @@ class db_operations:
         self.cursor.execute(
             """CREATE TABLE ReturnRequest (
             requestID INT AUTO_INCREMENT,
-            managerLoginID VARCHAR(30),
             orderNumber INT NOT NULL,
             requestDate DATE,
             ISBN VARCHAR(13) NOT NULL,
             quantity SMALLINT,
             status VARCHAR(25) DEFAULT 'PENDING',
             PRIMARY KEY (requestID),
-            FOREIGN KEY (managerLoginID) REFERENCES ManagerCredentials(loginID)
-            ON UPDATE CASCADE,
             FOREIGN KEY (orderNumber) REFERENCES OrderLog(orderNumber)
             ON UPDATE RESTRICT ON DELETE CASCADE)""")
 
-        # HasKeyword
-        self.cursor.execute(
-            """CREATE TABLE HasKeyword (
-            ISBN VARCHAR(13),
-            word VARCHAR(50) COLLATE utf8_general_ci,
-            PRIMARY KEY (ISBN, word),
-            FOREIGN KEY (ISBN) REFERENCES Book(ISBN)
-            ON UPDATE RESTRICT ON DELETE CASCADE)""")
+        # # HasKeyword
+        # self.cursor.execute(
+        #     """CREATE TABLE HasKeyword (
+        #     ISBN VARCHAR(13),
+        #     word VARCHAR(50) COLLATE utf8_general_ci,
+        #     PRIMARY KEY (ISBN, word),
+        #     FOREIGN KEY (ISBN) REFERENCES Book(ISBN)
+        #     ON UPDATE RESTRICT ON DELETE CASCADE)""")
 
         # Wrote
         self.cursor.execute(
@@ -248,21 +245,21 @@ class db_operations:
                     self.cursor.execute("INSERT IGNORE INTO wrote VALUES (%s,%s)", (auth_id, book))
                     self.db.commit()
         print("done")
-        # Finally, populate HasKeyword table. For now just add words in title and author names
-        print("\nGenerating keywords for \"HasKeyword\" table...", end='')
-        for book in list_books:
-            self.cursor.execute("SELECT title from book WHERE ISBN = %s", (book,))
-            keywords = [i[0].split(' ') for i in self.cursor.fetchall()]
-            self.cursor.execute("SELECT name FROM author A, wrote W WHERE A.ID = W.authorID AND W.ISBN = %s", (book,))
-            authors = [i[0].split(' ') for i in self.cursor.fetchall()]
-
-            keywords.extend(authors)
-            for word_subset in keywords:
-                for word in word_subset:
-                    if not word.isspace() and word:
-                        self.cursor.execute("INSERT IGNORE INTO HasKeyword VALUES(%s,%s)", (book, word))
-                        self.db.commit()
-        print("done")
+        # # Finally, populate HasKeyword table. For now just add words in title and author names
+        # print("\nGenerating keywords for \"HasKeyword\" table...", end='')
+        # for book in list_books:
+        #     self.cursor.execute("SELECT title from book WHERE ISBN = %s", (book,))
+        #     keywords = [i[0].split(' ') for i in self.cursor.fetchall()]
+        #     self.cursor.execute("SELECT name FROM author A, wrote W WHERE A.ID = W.authorID AND W.ISBN = %s", (book,))
+        #     authors = [i[0].split(' ') for i in self.cursor.fetchall()]
+        #
+        #     keywords.extend(authors)
+        #     for word_subset in keywords:
+        #         for word in word_subset:
+        #             if not word.isspace() and word:
+        #                 self.cursor.execute("INSERT IGNORE INTO HasKeyword VALUES(%s,%s)", (book, word))
+        #                 self.db.commit()
+        # print("done")
 
     def insert_book(self, book, authors):
         """Given all of the needed information for a book, add it to the database. NOTE: not all validity checks are in
@@ -1033,11 +1030,17 @@ class db_operations:
 
     def demo_insert_rates(self, rates):
         for rate in rates:
-            self.cursor.execute("""SELECT COUNT(*) FROM rates WHERE loginID = %s AND commentID=%s""", (rate[0], rate[1]))
-            if not int(self.cursor.fetchone()[0]):
+            self.cursor.execute("""SELECT COUNT(*) FROM rates R, comment C WHERE R.loginID = %s AND R.commentID=%s
+            OR (C.commentID = %s AND C.loginID=%s)""", (rate[0], rate[1], rate[0], rate[1]))
+            out = int(self.cursor.fetchone()[0])
+            if not out:
                 self.cursor.execute("""INSERT INTO rates VALUES (%s,%s,%s)""", (rate[0],rate[1],rate[2]))
                 self.db.commit()
-        self.update_comment_usefulness()
+                # New rating, just need to update one value and add a new rating tuple to rates
+                self.cursor.execute("UPDATE comment SET " + rate[2] + "=" + rate[2] + "+1 WHERE commentID=%s",
+                                    (rate[1],))
+                self.db.commit()
+                self.update_comment_avg_score(rate[1])
 
     def demo_insert_return_requests(self, requests):
         for request in requests:
