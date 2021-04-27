@@ -566,6 +566,28 @@ class db_operations:
             results = sorted_results
         return results
 
+    def find_books_by_author_separation(self, name, degree):
+        """Given an author name and a degree of separation, return a list of books that are written by authors who share
+        that degree separated from the specified author."""
+        self.cursor.execute("""SELECT ID FROM author WHERE name=%s""", (name,))
+        original_author_id = int(self.cursor.fetchone()[0])
+        self.cursor.execute("""SELECT ISBN FROM wrote WHERE authorID=%s""", (original_author_id,))
+        first_degree_authors = []
+        for original_author_books in self.cursor.fetchall():
+            self.cursor.execute("""SELECT authorID FROM wrote WHERE ISBN=%s AND authorID <> %s""",
+                                (original_author_books[0], original_author_id))
+            for author_id in self.cursor.fetchall():
+                first_degree_authors.append(author_id[0])
+        first_degree_results = {}
+        for author in first_degree_authors:
+            self.cursor.execute("""SELECT ISBN FROM wrote WHERE authorID=%s""",(author,))
+            for ISBN in self.cursor.fetchall():
+                book, author_list = self.get_single_book_info(ISBN[0])
+                first_degree_results[ISBN[0]] = [book, author_list]
+        if int(degree) == 1:
+            return first_degree_results
+
+
     def get_single_book_info(self, isbn):
         """Given an ISBN number of a book, retrieve the entire tuple of that book as well as the authors."""
         self.cursor.execute("SELECT * FROM book WHERE ISBN=%s", (isbn,))

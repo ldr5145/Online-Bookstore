@@ -127,6 +127,18 @@ a:hover{
             <small_label>To</small_label>
             <input type="date" style="width:130px" id="endDate" name="endDate">
         </div>
+        <br><br>
+    <br><br>
+    <div id="author_degree_div">
+        <label>Alternatively, search for books by author separation here:</label>
+        <br><br>
+        <input type="text" id="name_sep" name="author_name_degree" class="search_bar" placeholder="Author name"
+        {% if posts.auth_sep is defined and posts.auth_sep|length %}value="{{ posts.author_name_degree }}"{% endif %}>
+        &nbsp;
+        <small_label>Degree of separation:</small_label>
+        <input type="number" id="degree" name="degree" min="1" max="2" value="1" style="width:30px">
+        <input type="submit" id="search_auth" class="button" value="Search" name="auth_degree">
+    </div>
     </form>
     <br><br>
     <div id="results_div">

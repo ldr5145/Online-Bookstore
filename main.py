@@ -246,13 +246,18 @@ def browse():
         posts['author'] = request.form['author']
         posts['language'] = request.form['language']
         posts['publisher'] = request.form['publisher']
-        posts['results'] = db_ops.find_books([request.form['title'], request.form['author'], request.form['language'],
-                                             request.form['publisher']], posts['filters'],
-                                             [posts['startDate'], posts['endDate']], posts['order'], posts['descending'],
-                                             posts['filter_semantics'], session['username'])
+        if 'auth_degree' in request.form:
+            # user is asking for results by degree of separation
+            posts['results'] = db_ops.find_books_by_author_separation(request.form['author_name_degree'],
+                                                                      request.form['degree'])
+        else:
+            # user just wants a plain search
+            posts['results'] = db_ops.find_books([request.form['title'], request.form['author'], request.form['language'],
+                                                 request.form['publisher']], posts['filters'],
+                                                 [posts['startDate'], posts['endDate']], posts['order'], posts['descending'],
+                                                 posts['filter_semantics'], session['username'])
 
     return render_template('browse_books.html', developer='Liam Raehsler', posts=posts)
-
 
 @app.route("/index/book_info/<isbn>", methods=["POST", "GET"])
 def display_book(isbn):
