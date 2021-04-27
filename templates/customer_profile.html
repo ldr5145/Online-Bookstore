@@ -75,6 +75,8 @@
             {% else %}
                 <label><b>Message:</b> No message given.</label>
             {% endif %}
+            <br><br>
+            <label><b>Average usefulness score:</b> {{ posts.info.comments[comment_index][8] }}</label>
         </div>
         <br>
         {% endfor %}
