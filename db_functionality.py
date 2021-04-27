@@ -596,6 +596,15 @@ class db_operations:
                     order_details[str(order[0])]['ISBN'].append(book[0])
         return order_details
 
+    def get_books_in_order(self, orderNumber):
+        """Utility function to send a list of all ISBN's and their quantities in an order given an order number"""
+        self.cursor.execute("""SELECT ISBN, quantity FROM orderlog O, productof P WHERE O.orderNumber = P.orderNumber
+        AND O.orderNumber=%s""",(orderNumber,))
+        result = []
+        for i in self.cursor.fetchall():
+            result.append([i[0],i[1]])
+        return result
+
     def is_empty_order(self, orderNumber):
         """Utility function to check if an order specified by orderNumber has no books associated with it. This is
         only ever called internally, so no need for validity checks."""
@@ -962,3 +971,76 @@ class db_operations:
 
     def end_session(self):
         self.db.close()
+
+    """All of the functions below this line are used to populate the database with mock data and are for demo
+    purposes only."""
+    def demo_insert_managers(self, creds, personal):
+        for i in range(len(creds)):
+            self.cursor.execute("""INSERT INTO managerpersonal VALUES (%s, %s)""", (personal[i][0], personal[i][1]))
+            self.db.commit()
+            salt, key = self.hash_password(creds[i][3])
+            self.cursor.execute("""INSERT INTO managercredentials (loginID, firstName, lastName, salt, pass_key, phone)
+            VALUES (%s,%s,%s,%s,%s,%s)""", (creds[i][0], creds[i][1], creds[i][2], salt, key, creds[i][4]))
+            self.db.commit()
+
+    def demo_insert_customers(self, creds, personal):
+        for i in range(len(creds)):
+            self.cursor.execute("""INSERT INTO customerpersonal VALUES (%s, %s)""", (personal[i][0], personal[i][1]))
+            self.db.commit()
+            salt, key = self.hash_password(creds[i][3])
+            self.cursor.execute("""INSERT INTO customercredentials (loginID, firstName, lastName, salt, pass_key, phone)
+            VALUES (%s,%s,%s,%s,%s,%s)""", (creds[i][0], creds[i][1], creds[i][2], salt, key, creds[i][4]))
+            self.db.commit()
+
+    def demo_get_all_books(self):
+        """Return a list of all ISBN's in the database. This is used to randomly select books for orders in the mock
+        data"""
+        results = []
+        self.cursor.execute("""SELECT ISBN FROM book""")
+        for book in self.cursor.fetchall():
+            results.append(book[0])
+        return results
+
+    def demo_insert_orders(self, log, product_of):
+        for order in log:
+            self.cursor.execute("""INSERT INTO orderlog VALUES (%s,%s,%s)""", (order[0],order[1],order[2]))
+            self.db.commit()
+        for book in product_of:
+            self.cursor.execute("""SELECT COUNT(*) FROM productof WHERE ISBN=%s AND orderNumber=%s""",(book[0],book[1]))
+            if not int(self.cursor.fetchone()[0]):
+                self.cursor.execute("""INSERT INTO productof VALUES (%s,%s,%s)""", (book[0], book[1], book[2]))
+        self.db.commit()
+
+    def demo_insert_comments(self, comments):
+        for comment in comments:
+            # self.cursor.execute("""INSERT INTO comment (ISBN, loginID, score, commentDate) VALUES (%s,%s,%s,%s)""",
+            #                     (comment[0], comment[1], comment[2], comment[3]))
+            comment_info = {'score': comment[2], 'ISBN': comment[0], 'loginID': comment[1], 'message':''}
+            self.cursor.execute("""SELECT COUNT(*) FROM comment WHERE ISBN=%s AND loginID=%s""",(comment[0],comment[1]))
+            if not int(self.cursor.fetchone()[0]):
+                self.cursor.execute("""INSERT INTO comment (ISBN, loginID, score, message, commentDate)
+                     VALUES (%s,%s,%s,%s,%s)""", (comment_info['ISBN'], comment_info['loginID'], comment_info['score'],
+                                                  comment_info['message'], comment[3]))
+                self.cursor.execute("""UPDATE book SET total_rating_score = total_rating_score+%s, 
+                    num_ratings = num_ratings+1 WHERE ISBN = %s""", (comment_info['score'], comment_info['ISBN']))
+                self.db.commit()
+                self.update_average_book_rating(comment_info['ISBN'])
+
+    def demo_insert_trusts(self, trusts):
+        for trust in trusts:
+            self.cursor.execute("""INSERT INTO trusts VALUES (%s,%s,%s)""", (trust[0], trust[1], trust[2]))
+            self.db.commit()
+
+    def demo_insert_rates(self, rates):
+        for rate in rates:
+            self.cursor.execute("""SELECT COUNT(*) FROM rates WHERE loginID = %s AND commentID=%s""", (rate[0], rate[1]))
+            if not int(self.cursor.fetchone()[0]):
+                self.cursor.execute("""INSERT INTO rates VALUES (%s,%s,%s)""", (rate[0],rate[1],rate[2]))
+                self.db.commit()
+        self.update_comment_usefulness()
+
+    def demo_insert_return_requests(self, requests):
+        for request in requests:
+            self.cursor.execute("""INSERT INTO returnrequest (orderNumber, requestDate, ISBN, quantity) 
+            VALUES (%s,%s,%s,%s)""", (request[0],request[1],request[2],request[3]))
+            self.db.commit()

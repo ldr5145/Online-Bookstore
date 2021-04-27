@@ -367,7 +367,6 @@ def confirm_order():
         return redirect(url_for('login'))
     if 'order_details' not in session:
         return redirect(url_for('order_book'))
-    current_order = session['order_details']
     if request.method == "POST":
         if 'confirm' in request.form:
             db_ops.order_book(session['order_details'])
