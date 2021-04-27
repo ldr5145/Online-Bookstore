@@ -249,7 +249,7 @@ def browse():
         posts['results'] = db_ops.find_books([request.form['title'], request.form['author'], request.form['language'],
                                              request.form['publisher']], posts['filters'],
                                              [posts['startDate'], posts['endDate']], posts['order'], posts['descending'],
-                                             posts['filter_semantics'])
+                                             posts['filter_semantics'], session['username'])
 
     return render_template('browse_books.html', developer='Liam Raehsler', posts=posts)
 

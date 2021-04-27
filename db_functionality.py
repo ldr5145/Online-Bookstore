@@ -452,13 +452,12 @@ class db_operations:
             return True, float(book[2]), book[1], book[3]
         return False, 0, 0, 0
 
-    def find_books(self, query, filters, dates, order, descending, semantics):
+    def find_books(self, query, filters, dates, order, descending, semantics, loginID):
         """Given a query entered by the user, return all books that match the search. Results must
         satisfy the provided filters. I will be making the result a dict so that duplicates are avoided.
         Also, because I may need to sort all of the books by a certain value, each filter check will
         add a subsection of the query and only one query will be executed at the end so that all of the results
         can be ordered together."""
-        print(descending)
         if int(semantics):
             # OR semantics
             conjunction = ' UNION '
@@ -508,17 +507,19 @@ class db_operations:
         # determine ordering method
         if order == '0':
             query_sections += " ORDER BY publicationDate"
+            # if descending is true, add descending specification
+            if int(descending):
+                query_sections += " DESC"
         elif order == '1':
             query_sections += "ORDER BY avg_rating"
-        elif order == '2':
-            query_sections += ""  # need to implement this
-        # if descending is true, add descending specification
-        if int(descending):
-            query_sections += " DESC"
+            # if descending is true, add descending specification
+            if int(descending):
+                query_sections += " DESC"
 
         # execute final constructed query and store results in a dict
         self.cursor.execute(query_sections, args)
         books = self.cursor.fetchall()
+
         for book in books:
             if str(book[0]) not in results:
                 cur_authors = []
@@ -529,6 +530,40 @@ class db_operations:
                 for author in self.cursor.fetchall():
                     cur_authors.append(author[0])
                 results[str(book[0])] = [results[str(book[0])], cur_authors]
+        # filter results so only trusted comments are included in average rating without changing database
+        if order == '2':
+            actual_ratings = []
+            for book in books:
+                if not any(str(book[0]) in sub for sub in actual_ratings):
+                    self.cursor.execute("""SELECT score FROM trusts T, comment C WHERE T.loginID = %s AND
+                    T.otherLoginID = C.loginID AND T.trustStatus = 'TRUSTED' AND 
+                    C.ISBN = %s""", (loginID, str(book[0])))
+                    current_sum = 0
+                    current_num_users = 0
+                    for score in self.cursor.fetchall():
+                        current_num_users = current_num_users+1
+                        current_sum = current_sum+score[0]
+                    final_score = None
+                    if current_num_users:
+                        final_score = current_sum/current_num_users
+                    else:
+                        final_score = None
+                    actual_ratings.append([str(book[0]), final_score])
+            if int(descending):
+                is_reverse = True
+            else:
+                is_reverse = False
+
+            actual_ratings = sorted(actual_ratings, key=lambda l:-1*float('inf') if l[1] is None else l[1],
+                                    reverse=is_reverse)
+            sorted_results = {}
+            for [book, score] in actual_ratings:
+                unfiltered_data = results[book]
+                t = unfiltered_data[0]
+                new_data = [(t[0],t[1],t[2],t[3],t[4],t[5],t[6],t[7],t[8],round(score,2) if score is not None else score,
+                             t[9],t[10]), unfiltered_data[1]]
+                sorted_results[book] = new_data
+            results = sorted_results
         return results
 
     def get_single_book_info(self, isbn):
