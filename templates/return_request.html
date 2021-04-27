@@ -27,7 +27,7 @@
 {% block submit_form %}
 <div class="main_form" style="width:600px">
     <label>Select any of the books from your previous orders below and select a quantity to request a return.
-    Click <a href="#">here</a> to view your past return requests.</label>
+    Click <a href="/index/return_request/my_requests">here</a> to view your past return requests.</label>
     <br><br>
     <div id="orders_div">
         {% for order_number, details in posts.items() %}

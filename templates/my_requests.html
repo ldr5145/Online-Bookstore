@@ -1,0 +1,44 @@
+{% extends "base_with_sidebar.html" %}
+{% block style %}
+{{ super() }}
+a:hover{
+    color:White;
+}
+.button{
+    width: 100px;
+    height: 30px;
+    border: none;
+    padding-left: 7px;
+    color: blue;
+}
+{% endblock %}
+{% block title %}Return Requests{% endblock %}
+{% block head_title %}My return requests{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+
+<div class="main_form" style="width:800px">
+    {% if posts.requestID|length > 0 %}
+        <h2 align="center"><u>My past requests:</u></h2>
+        {% for request_index in range(posts.requestID|length) %}
+        <div style="border:1px solid black; padding:10px;">
+            <label><b>Request ID:</b> {{ posts.requestID[request_index] }}</label>
+            <br><br>
+            <label><b>Title:</b> {{ posts.title[request_index] }}</label>
+            <br><br>
+            <label><b>Amount to return:</b> {{ posts.quantity[request_index] }}</label>
+            <br><br>
+            <label><b>Date ordered: </b> {{ posts.orderDate[request_index] }}</label>
+            <br><br>
+            <label><b>Date of request:</b> {{ posts.requestDate[request_index] }}</label>
+            <br><br>
+            <label><b>Current status:</b> {{ posts.status[request_index] }}</label>
+        </div>
+        <br>
+        {% endfor %}
+    {% else %}
+    <label>You have not made any return requests. Click <a href="/index/return_request">here</a> to return to the
+    return requests page.</label>
+{% endif %}
+</div>
+{% endblock %}

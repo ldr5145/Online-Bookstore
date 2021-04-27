@@ -9,3 +9,6 @@ data_list = data_manage.format_csv('books.csv')
 author_dict, book_list = data_manage.extract_authors(data_list)
 
 dbops.populate_tables(book_list, author_dict, 'books.csv')
+
+"""The next section is used to create some mock data that can be used for demoing. Comment out if you want to
+insert data fully using the user interface."""

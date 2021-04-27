@@ -135,6 +135,7 @@ class db_operations:
             requestDate DATE,
             ISBN VARCHAR(13) NOT NULL,
             quantity SMALLINT,
+            status VARCHAR(25) DEFAULT 'PENDING',
             PRIMARY KEY (requestID),
             FOREIGN KEY (managerLoginID) REFERENCES ManagerCredentials(loginID)
             ON UPDATE CASCADE,
@@ -329,7 +330,7 @@ class db_operations:
         if result_query[0]:
             # unique customer username check
             self.cursor.execute("""SELECT COUNT(*) FROM customercredentials C, managercredentials M
-                                WHERE C.loginID = %s OR M.loginID=%s""", (info['loginID'],info['loginID']))
+                                WHERE C.loginID = %s OR M.loginID=%s""", (info['loginID'], info['loginID']))
             if self.cursor.fetchone()[0] != 0:
                 result['success'] = False
                 result['errorCodes'].append(3)
@@ -375,7 +376,7 @@ class db_operations:
             self.cursor.execute("""INSERT INTO managerpersonal VALUES (%s,%s)""", (int(info['phone']), info['address']))
         self.cursor.execute("""INSERT INTO managercredentials (loginID, firstName, lastName, salt, pass_key, phone)
         VALUES (%s,%s,%s,%s,%s,%s)""", (info['loginID'], info['firstName'], info['lastName'], info['salt'],
-                            info['key'], int(info['phone'])))
+                                        info['key'], int(info['phone'])))
 
         self.db.commit()
         self.cursor.execute("""SELECT COUNT(*) FROM customercredentials WHERE loginID=%s""", (info['loginID'],))
@@ -399,8 +400,9 @@ class db_operations:
         self.cursor.execute("""SELECT * FROM  customerpersonal WHERE phone=%s""", (int(creds[5]),))
         personal = self.cursor.fetchone()
 
-        info = {'phone':creds[5], 'address':personal[1], 'loginID':creds[0], 'firstName':creds[1], 'lastName':creds[2],
-                'salt':creds[3], 'key':creds[4]}
+        info = {'phone': creds[5], 'address': personal[1], 'loginID': creds[0], 'firstName': creds[1],
+                'lastName': creds[2],
+                'salt': creds[3], 'key': creds[4]}
         self.add_manager(info)
 
     def confirm_login(self, info):
@@ -512,7 +514,7 @@ class db_operations:
         elif order == '1':
             query_sections += "ORDER BY avg_rating"
         elif order == '2':
-            query_sections += "" # need to implement this
+            query_sections += ""  # need to implement this
         # if descending is true, add descending specification
         if int(descending):
             query_sections += " DESC"
@@ -594,6 +596,14 @@ class db_operations:
                     order_details[str(order[0])]['ISBN'].append(book[0])
         return order_details
 
+    def is_empty_order(self, orderNumber):
+        """Utility function to check if an order specified by orderNumber has no books associated with it. This is
+        only ever called internally, so no need for validity checks."""
+        self.cursor.execute("""SELECT COUNT(*) FROM productof WHERE orderNumber=%s""", (orderNumber,))
+        if self.cursor.fetchone()[0]:
+            return False
+        return True
+
     def add_comment(self, comment_info):
         """Add a new comment from a particular user to a particular book. Since only one comment per user per
         book is allowed, this function first checks if this user has already commented on the book. If not, can just
@@ -632,7 +642,7 @@ class db_operations:
         """Given the ISBN of a book, get n relevant information for all comments about that book."""
         result = []
         self.cursor.execute("""SELECT * FROM comment WHERE ISBN=%s ORDER BY avg_usefulness DESC LIMIT %s""",
-                            (str(isbn),n))
+                            (str(isbn), n))
         for comment in self.cursor.fetchall():
             result.append(comment)
         return result
@@ -653,13 +663,14 @@ class db_operations:
                 self.cursor.execute("""DELETE FROM rates WHERE loginID=%s AND commentID=%s""",
                                     (loginID, commentID))
             else:
-                self.cursor.execute("UPDATE comment SET " + old_rating[0][0]+ "=" + old_rating[0][0] + "-1, " + attrib_name
-                                    + "=" + attrib_name + "+1 WHERE commentID=%s""", (commentID,))
+                self.cursor.execute(
+                    "UPDATE comment SET " + old_rating[0][0] + "=" + old_rating[0][0] + "-1, " + attrib_name
+                    + "=" + attrib_name + "+1 WHERE commentID=%s""", (commentID,))
                 self.cursor.execute("""UPDATE rates SET rating=%s WHERE loginID=%s AND commentID=%s""",
                                     (attrib_name, loginID, commentID))
         else:
             # New rating, just need to update one value and add a new rating tuple to rates
-            self.cursor.execute("UPDATE comment SET "+attrib_name+"="+attrib_name+"+1 WHERE commentID=%s",
+            self.cursor.execute("UPDATE comment SET " + attrib_name + "=" + attrib_name + "+1 WHERE commentID=%s",
                                 (commentID,))
             self.cursor.execute("""INSERT INTO rates VALUES (%s,%s,%s)""", (loginID, commentID, attrib_name))
         self.db.commit()
@@ -712,8 +723,9 @@ class db_operations:
         comments, total trust score, number trusted and untrusted, etc.). AVOID sensitive information (address,
         phone, password, specifics of orders, etc...) NOTE: No need to check if it is a valid loginID, as this
         function will only be used in the context where the login ID has already been checked and is valid."""
-        info ={'loginID': '', 'firstName': '', 'lastName': '', 'orderCount': 0, 'books_purchased': 0, 'num_comments': 0,
-               'comments': [], 'books_commented': [], 'trusted': 0, 'untrusted': 0, 'personalStatus': ''}
+        info = {'loginID': '', 'firstName': '', 'lastName': '', 'orderCount': 0, 'books_purchased': 0,
+                'num_comments': 0,
+                'comments': [], 'books_commented': [], 'trusted': 0, 'untrusted': 0, 'personalStatus': ''}
         self.cursor.execute("""SELECT DISTINCT C.loginID, firstName, lastName, COUNT(DISTINCT orderNumber),
         COUNT(DISTINCT commentID) FROM customercredentials C, comment CO, orderlog O 
         WHERE C.loginID = %s AND O.loginID = %s AND CO.loginID = %s""", (loginID, loginID, loginID))
@@ -766,7 +778,7 @@ class db_operations:
             print(comment)
             print(comment[3], comment[1])
             self.cursor.execute("""UPDATE book SET total_rating_score=total_rating_score+%s,
-            num_ratings=num_ratings+1 WHERE ISBN=%s""", (comment[3],comment[1]))
+            num_ratings=num_ratings+1 WHERE ISBN=%s""", (comment[3], comment[1]))
             self.db.commit()
             self.update_average_book_rating(comment[1])
 
@@ -783,7 +795,7 @@ class db_operations:
         self.cursor.execute("""SELECT title, B.ISBN, SUM(quantity) as total FROM productof P, book B WHERE 
         B.ISBN = P.ISBN AND orderNumber IN 
         (SELECT orderNumber FROM orderlog WHERE orderDate >= %s AND orderDate <= %s) GROUP BY ISBN 
-        ORDER BY total DESC LIMIT %s""",(startDate, endDate, n))
+        ORDER BY total DESC LIMIT %s""", (startDate, endDate, n))
         for book in self.cursor.fetchall():
             book_results.append(book)
 
@@ -831,7 +843,7 @@ class db_operations:
             name = self.cursor.fetchone()
             trusted.append([loginID, name[0], name[1], trust_dict[loginID]])
             del trust_dict[loginID]
-            n_temp = n_temp-1
+            n_temp = n_temp - 1
 
         self.cursor.execute("""SELECT C.loginID, firstName, lastName, AVG(avg_usefulness) as total_avg
         FROM comment C, customercredentials CR WHERE C.loginID = CR.loginID GROUP BY C.loginID
@@ -879,13 +891,74 @@ class db_operations:
     def request_return(self, orderNumber, ISBN, quantity):
         """Given details needed to locate a book from a certain order and a quantity, create a return request for
         quantity amount of that book."""
-        print(orderNumber, ISBN, quantity)
-        self.cursor.execute("""SELECT orderDate FROM orderlog WHERE orderNumber=%s""", (orderNumber,))
-        date = self.cursor.fetchone()[0]
+
+        date = datetime.date.today()
 
         self.cursor.execute("""INSERT INTO returnrequest (orderNumber, requestDate, ISBN, quantity)
         VALUES (%s,%s,%s,%s)""", (orderNumber, date, ISBN, quantity))
         self.db.commit()
+
+    def get_return_requests(self, loginID):
+        """Given a login ID, return a dict containing all of the return requests associated with the user."""
+        result = {'requestID': [], 'orderNumber': [], 'requestDate': [], 'ISBN': [], 'quantity': [], 'orderDate': [],
+                  'status': [], 'title': []}
+        self.cursor.execute("""SELECT requestID, R.orderNumber, requestDate, B.ISBN, quantity, orderDate, status, B.title 
+        FROM returnrequest R, orderlog O, Book B WHERE O.loginID = %s AND O.orderNumber = R.orderNumber AND
+        B.ISBN = R.ISBN ORDER BY requestDate DESC""", (loginID,))
+        for request in self.cursor.fetchall():
+            result['requestID'].append(request[0])
+            result['orderNumber'].append(request[1])
+            result['requestDate'].append(request[2])
+            result['ISBN'].append(request[3])
+            result['quantity'].append(request[4])
+            result['orderDate'].append(request[5])
+            result['status'].append(request[6])
+            result['title'].append(request[7])
+        return result
+
+    def get_pending_requests(self):
+        """Function to find all of the return requests with a status of "PENDING". This is for the manager view for when
+        he/she wishes to accept or deny requests."""
+        result = {'requestID': [], 'orderNumber': [], 'requestDate': [], 'ISBN': [], 'quantity': [], 'orderDate': [],
+                  'title': []}
+        self.cursor.execute("""SELECT requestID, R.orderNumber, requestDate, B.ISBN, quantity, orderDate, B.title 
+                FROM returnrequest R, orderlog O, Book B WHERE status='PENDING' AND O.orderNumber = R.orderNumber AND
+                B.ISBN = R.ISBN ORDER BY requestDate ASC""")
+        for request in self.cursor.fetchall():
+            result['requestID'].append(request[0])
+            result['orderNumber'].append(request[1])
+            result['requestDate'].append(request[2])
+            result['ISBN'].append(request[3])
+            result['quantity'].append(request[4])
+            result['orderDate'].append(request[5])
+            result['title'].append(request[6])
+        return result
+
+    def update_request_status(self, requestID, ISBN, quantity, approved):
+        """Update the database once the manager makes a decision on a return request. The boolean parameter "approved"
+        is passed to indicate whether the manager accepted or rejected the request. Upon approval, update the status of
+        the return request, then update the order by removing the amount of books specified by quantity and ISBN, then
+        finally update the stock count of the book that was returned. Upon rejection, just update the status of the
+        request."""
+        if approved:
+            self.cursor.execute("""SELECT orderNumber FROM returnrequest WHERE requestID=%s""", (requestID,))
+            orderNumber = self.cursor.fetchone()[0]
+            self.cursor.execute("""UPDATE returnrequest SET status='APPROVED' WHERE requestID=%s""", (requestID,))
+            self.cursor.execute("""SELECT quantity FROM productof WHERE orderNumber=%s AND ISBN=%s""",
+                                (orderNumber, ISBN))
+            remaining_books_ordered = self.cursor.fetchone()[0] - int(quantity)
+            if not int(remaining_books_ordered):
+                self.cursor.execute("""DELETE FROM productof WHERE orderNumber=%s AND ISBN=%s""", (orderNumber, ISBN))
+            else:
+                self.cursor.execute("""UPDATE productof SET quantity=quantity-%s WHERE orderNumber=%s AND ISBN=%s""",
+                                    (quantity, orderNumber, ISBN))
+            self.cursor.execute("""UPDATE book SET stock=stock+%s WHERE ISBN=%s""", (quantity, ISBN))
+            self.db.commit()
+            if self.is_empty_order(orderNumber):
+                self.cursor.execute("""DELETE FROM orderlog WHERE orderNumber=%s""", (orderNumber,))
+        else:
+            self.cursor.execute("""UPDATE returnrequest SET status='DENIED' WHERE requestID=%s""", (requestID,))
+            self.db.commit()
 
     def end_session(self):
         self.db.close()

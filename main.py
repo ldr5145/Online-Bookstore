@@ -190,6 +190,20 @@ def customer_stats():
             return redirect(url_for('manager'))
     return render_template("customer_stats.html", developer='Liam Raehsler', posts=posts)
 
+@app.route("/index/manager_dashboard/return_requests", methods=["POST", "GET"])
+def manage_return_requests():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if 'admin' not in session or not session['admin']:
+        return redirect(url_for('welcome_page'))
+    if request.method=="POST":
+        if 'approve' in request.form:
+            db_ops.update_request_status(request.form['requestID'], request.form['ISBN'], request.form['quantity'], 1)
+        else:
+            db_ops.update_request_status(request.form['requestID'], request.form['ISBN'], request.form['quantity'], 0)
+    posts = db_ops.get_pending_requests()
+    return render_template("request_view.html", developer='Liam Raehsler', posts=posts)
+
 @app.route("/index/manager_dashboard/remove_user", methods=["POST", "GET"])
 def remove_customer():
     posts = {'loginID':'', 'error':''}
@@ -439,10 +453,17 @@ def return_request():
     if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == "POST":
-        print(request.form)
         db_ops.request_return(request.form['orderID'], str(request.form['ISBN']), request.form['quantity'])
+        return redirect(url_for('my_requests'))
     posts = db_ops.get_user_orders(session['username'])
     return render_template("return_request.html", developer='Liam Raehsler', posts=posts)
+
+@app.route("/index/return_request/my_requests", methods=["POST", "GET"])
+def my_requests():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    posts = db_ops.get_return_requests(session['username'])
+    return render_template("my_requests.html", developer='Liam Raehsler', posts=posts)
 
 @app.route("/index/customer_archives", methods=["GET","POST"])
 def customer_search():

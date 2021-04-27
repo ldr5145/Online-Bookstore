@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block form_name %}main_form{% endblock %}
+{% block style %}
+{{ super() }}
+a:hover{
+    color:White;
+}
+.button{
+    width: 100px;
+    height: 30px;
+    border: none;
+    padding-left: 7px;
+    color: blue;
+}
+{% endblock %}
+{% block title %}Return Requests{% endblock %}
+{% block head_title %}My return requests{% endblock %}
+{% block dev_id %}{{ super() }}{% endblock %}
+{% block submit_form %}
+
+<div class="main_form" style="width:600px">
+    {% if posts.requestID|length > 0 %}
+        <h2 align="center"><u>My past requests:</u></h2>
+        {% for request_index in range(posts.requestID|length) %}
+        <div style="border:1px solid black; padding:10px;">
+            <form id="main_form" method="post">
+                <label><b>Request ID:</b> {{ posts.requestID[request_index] }}</label>
+                <input type="hidden" name="requestID" value="{{ posts.requestID[request_index] }}">
+                <br><br>
+                <label><b>ISBN:</b> {{ posts.ISBN[request_index] }}</label>
+                <input type="hidden" name="ISBN" value="{{ posts.ISBN[request_index] }}">
+                <br><br>
+                <label><b>Title:</b> {{ posts.title[request_index] }}</label>
+                <br><br>
+                <label><b>Amount to return:</b> {{ posts.quantity[request_index] }}</label>
+                <input type="hidden" name="quantity" value="{{ posts.quantity[request_index] }}">
+                <br><br>
+                <label><b>Date ordered: </b> {{ posts.orderDate[request_index] }}</label>
+                <br><br>
+                <label><b>Date of request:</b> {{ posts.requestDate[request_index] }}</label>
+                <br><br>
+                <input type="submit" class="button" name="approve" value="Approve">
+                &nbsp;
+                <input type="submit" class="button" name="deny" value="Deny">
+            </form>
+        </div>
+        <br>
+        {% endfor %}
+    {% else %}
+    <label>There are no pending return request. Click <a href="/index/manager_dashboard">here</a> to return to the
+    dashboard.</label>
+{% endif %}
+</div>
+{% endblock %}
