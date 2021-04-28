@@ -261,7 +261,6 @@ def display_book(isbn):
     if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == "POST":
-        n = int(request.form['n'])
         if 'return' in request.form:
             return redirect(url_for('browse'))
         elif 'order' in request.form:
@@ -271,15 +270,17 @@ def display_book(isbn):
             session['ISBN'] = request.form['ISBN']
             return redirect(url_for('rate_book', isbn=isbn))
         elif 'Very useful' in request.form:
+            n = int(request.form['n'])
             db_ops.update_comment_score(session['username'], request.form['Very useful'], 'veryUseful')
         elif 'Useful' in request.form:
+            n = int(request.form['n'])
             db_ops.update_comment_score(session['username'], request.form['Useful'], 'useful')
         elif 'Useless' in request.form:
+            n = int(request.form['n'])
             db_ops.update_comment_score(session['username'], request.form['Useless'], 'useless')
         elif 'enter' in request.form:
             n = int(request.form['n'])
         else:
-            n = int(request.form['n'])
             book, authors = db_ops.get_single_book_info(request.form['ISBN'])
             posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(request.form['ISBN'],n),
                      'loginID': session['username']}
