@@ -261,6 +261,7 @@ def display_book(isbn):
     if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == "POST":
+        n = int(request.form['n'])
         if 'return' in request.form:
             return redirect(url_for('browse'))
         elif 'order' in request.form:
@@ -278,6 +279,7 @@ def display_book(isbn):
         elif 'enter' in request.form:
             n = int(request.form['n'])
         else:
+            n = int(request.form['n'])
             book, authors = db_ops.get_single_book_info(request.form['ISBN'])
             posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(request.form['ISBN'],n),
                      'loginID': session['username']}
@@ -285,7 +287,7 @@ def display_book(isbn):
         book, authors = db_ops.get_single_book_info(isbn)
         posts = {'book': book, 'authors': authors, 'comments': db_ops.get_comments(isbn, n),
                  'loginID': session['username']}
-    return render_template('book_info.html', developer='Liam Raehsler', posts=posts)
+    return render_template('book_info.html', developer='Liam Raehsler', posts=posts, n=n)
 
 @app.route("/index/book_info/rate_book/<isbn>", methods=["POST","GET"])
 def rate_book(isbn):
