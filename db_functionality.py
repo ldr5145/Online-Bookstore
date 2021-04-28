@@ -587,6 +587,32 @@ class db_operations:
         if int(degree) == 1:
             return first_degree_results
 
+        second_degree_results = {}
+        authors_to_check = []
+        all_authors = []
+        self.cursor.execute("""SELECT authorID FROM wrote""")
+        for author in self.cursor.fetchall():
+            all_authors.append(int(author[0]))
+        for author1 in first_degree_authors:
+            for author2 in all_authors:
+                if (self.is_one_degree_separated(author1, author2) and author1 != author2
+                        and author2 != original_author_id):
+                    authors_to_check.append(author2)
+        second_degree_authors = [a for a in authors_to_check if a not in first_degree_authors]
+        for author in second_degree_authors:
+            self.cursor.execute("""SELECT ISBN FROM wrote WHERE authorID=%s""", (author,))
+            for ISBN in self.cursor.fetchall():
+                book, author_list = self.get_single_book_info(ISBN[0])
+                second_degree_results[ISBN[0]] = [book, author_list]
+        return second_degree_results
+
+    def is_one_degree_separated(self,author1, author2):
+        """Utility function that determines if two authors are 1-degree separated."""
+        self.cursor.execute("""SELECT COUNT(*) FROM wrote W WHERE W.authorID = %s AND EXISTS
+        (SELECT * FROM wrote W2 WHERE W2.authorID = %s AND W.ISBN = W2.ISBN)""", (author1, author2))
+        if int(self.cursor.fetchone()[0]):
+            return True
+        return False
 
     def get_single_book_info(self, isbn):
         """Given an ISBN number of a book, retrieve the entire tuple of that book as well as the authors."""
