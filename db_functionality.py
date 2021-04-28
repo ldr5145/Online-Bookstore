@@ -323,7 +323,6 @@ class db_operations:
         # need to check if any users exist (if not, make this one a manager)
         self.cursor.execute("""SELECT COUNT(*) FROM managercredentials""")
         result_query = self.cursor.fetchone()
-        print(result_query[0])
         if result_query[0]:
             # unique customer username check
             self.cursor.execute("""SELECT COUNT(*) FROM customercredentials C, managercredentials M
@@ -661,8 +660,6 @@ class db_operations:
             (SELECT orderNumber FROM productof P2 WHERE ISBN = %s AND P2.orderNumber = P.orderNumber)""", (ISBN[0],))
             for valid_isbn in self.cursor.fetchall():
                 possible_isbn_list.append(valid_isbn[0])
-        print(possible_isbn_list)
-        print(invalid_isbn_list)
         valid_isbn_list = [i for i in possible_isbn_list if i not in invalid_isbn_list]
         return_list = []
         for book in valid_isbn_list:
@@ -893,8 +890,6 @@ class db_operations:
         self.db.commit()
         self.cursor.execute("""SELECT * FROM comment""")
         for comment in self.cursor.fetchall():
-            print(comment)
-            print(comment[3], comment[1])
             self.cursor.execute("""UPDATE book SET total_rating_score=total_rating_score+%s,
             num_ratings=num_ratings+1 WHERE ISBN=%s""", (comment[3], comment[1]))
             self.db.commit()
@@ -1000,7 +995,7 @@ class db_operations:
             self.cursor.execute("""DELETE FROM managercredentials WHERE loginID=%s""", (loginID,))
             self.db.commit()
             self.cursor.execute("""DELETE FROM managerpersonal WHERE phone NOT IN 
-            (SELECT phone FROM customercredentials)""")
+            (SELECT phone FROM managercredentials)""")
             self.db.commit()
             return True
         except Exception as e:

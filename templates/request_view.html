@@ -14,13 +14,15 @@ a:hover{
 }
 {% endblock %}
 {% block title %}Return Requests{% endblock %}
-{% block head_title %}My return requests{% endblock %}
+{% block head_title %}Pending Return Requests{% endblock %}
 {% block dev_id %}{{ super() }}{% endblock %}
 {% block submit_form %}
 
 <div class="main_form" style="width:600px">
     {% if posts.requestID|length > 0 %}
-        <h2 align="center"><u>My past requests:</u></h2>
+    <label>Click <a href="/index/manager_dashboard">here</a> to return to the
+    dashboard</label>
+        <h2 align="center"><u>Pending requests:</u></h2>
         {% for request_index in range(posts.requestID|length) %}
         <div style="border:1px solid black; padding:10px;">
             <form id="main_form" method="post">

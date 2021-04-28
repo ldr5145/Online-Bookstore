@@ -32,12 +32,9 @@ def login():
     return render_template('login.html', developer='Liam Raehsler', posts=creds)
 
 
-@app.route("/forgot_password", methods=["POST", "GET"])
+@app.route("/forgot_password")
 def forgot():
-    if request.method == "POST":
-        print(request.form)
-    else:
-        return render_template('forgot_password.html')
+    return render_template('forgot_password.html')
 
 
 @app.route("/create_account", methods=["POST", "GET"])
@@ -55,7 +52,6 @@ def new_account():
         user_info['password'] = request.form['password']
         user_info['password2'] = request.form['password2']
         result = db_ops.verify_new_customer_creds(user_info)
-        print(result)
         if result['success']:
             print('new account successfully created')
             user_info['salt'], user_info['key'] = db_ops.hash_password(user_info['password'])
@@ -185,7 +181,6 @@ def customer_stats():
         if 'enter' in request.form:
             posts['n'] = int(request.form['n'])
             posts['trusted'], posts['useful'] = db_ops.get_customer_statistics(posts['n'])
-            print(posts)
         elif 'cancel' in request.form:
             return redirect(url_for('manager'))
     return render_template("customer_stats.html", developer='Liam Raehsler', posts=posts)
@@ -406,7 +401,6 @@ def order_successful(orderID):
         return redirect(url_for('login'))
     posts = {'recommended_books': db_ops.get_recommended_books(orderID, session['username']),
              'loginID': session['username']}
-    print(posts)
     return render_template('order_successful.html', developer='Liam Raehsler', posts=posts)
 
 @app.route("/index/my_orders", methods=["POST","GET"])
