@@ -1,13 +1,70 @@
 {% extends "base_with_sidebar.html" %}
 {% block style %}
 {{ super() }}
+.inline {
+  display: inline;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 1em;
+  font-family: serif;
+}
+.link-button:focus {
+  outline: none;
+}
+.link-button:active {
+  color:red;
+}
 {% endblock %}
 {% block title %}Order Successful! {% endblock %}
 {% block head_title %}Order confirmation{% endblock %}
 {% block dev_id %}{{ super() }}{% endblock %}
 {% block submit_form %}
-<div class="main_form">
+<div class="main_form" style="width:600px">
     <label>Your order was successful! To see the order details, click
-        <a href="/index/my_orders">here</a> to go to your orders.</label>
+        <a href="/index/my_orders">here</a> to go to your orders. We have collected some recommended books for you
+    based on similar purchases you made with other customers. Feel free to browse those below.</label>
+    <br><br>
+    <div id="results_div">
+       <table style="width:100%">
+           {% for book, author in posts.recommended_books %}
+           {% if loop.first %}
+           <tr>
+               <th>Title</th>
+               <th>Author(s)</th>
+               <th>Rating</th>
+               <th>Price</th>
+               <th>More Info</th>
+           </tr>
+           {% endif %}
+           <tr>
+               <td>{{ book[1] }}</td>
+               <td>
+                   {% for auth in author %}
+                       {{ auth }}
+                       {% if not loop.last %}
+                            ,
+                       {% endif %}
+                   {% endfor %}
+               </td>
+               <td align="right">{{ book[9] }}</td>
+               <td align="right">${{ book[7] }}</td>
+               <td>
+                   <form method="get" action="/index/book_info/{{ book[0] }}" class="inline">
+                      <button type="submit" name="ISBN" value="{{ book[0] }}" class="link-button">
+                        Link
+                      </button>
+                   </form>
+               </td>
+           </tr>
+           {% endfor %}
+       </table>
+    </div>
+</div>
 </div>
 {% endblock %}

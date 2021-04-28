@@ -639,7 +639,36 @@ class db_operations:
             self.cursor.execute("UPDATE book SET stock=stock-%s WHERE ISBN=%s",
                                 (order_details['quantity'][i], order_details['ISBN'][i]))
         self.db.commit()
-        return True
+        return order_id
+
+    def get_recommended_books(self, orderNumber, loginID):
+        """Given an order number, return a list of several (we'll say 10 max) suggestions of books for the user to
+        purchase. Need to get all the books from this order, then search all other orders and recommend books those
+        customers ordered. Also need to find all of the books this user has ordered in the past as well, since we
+        do not want to recommend books they already purchased."""
+        invalid_isbn_list = []
+        books_in_order = []
+        possible_isbn_list = []
+        self.cursor.execute("""SELECT orderNumber FROM orderlog WHERE loginID=%s""", (loginID,))
+        for order in self.cursor.fetchall():
+            self.cursor.execute("""SELECT ISBN FROM productof WHERE orderNumber=%s""", (order[0],))
+            for ISBN in self.cursor.fetchall():
+                invalid_isbn_list.append(ISBN[0])
+        self.cursor.execute("""SELECT ISBN FROM productof WHERE orderNumber=%s""", (orderNumber,))
+        for ISBN in self.cursor.fetchall():
+            books_in_order.append(ISBN[0])
+            self.cursor.execute("""SELECT P.ISBN FROM productof P WHERE EXISTS 
+            (SELECT orderNumber FROM productof P2 WHERE ISBN = %s AND P2.orderNumber = P.orderNumber)""", (ISBN[0],))
+            for valid_isbn in self.cursor.fetchall():
+                possible_isbn_list.append(valid_isbn[0])
+        print(possible_isbn_list)
+        print(invalid_isbn_list)
+        valid_isbn_list = [i for i in possible_isbn_list if i not in invalid_isbn_list]
+        return_list = []
+        for book in valid_isbn_list:
+            book, author = self.get_single_book_info(book)
+            return_list.append([book, author])
+        return return_list
 
     def restock_book(self, isbn, quantity):
         """Given an isbn of a book and a quantity, add that many books to inventory. If successful, return true.

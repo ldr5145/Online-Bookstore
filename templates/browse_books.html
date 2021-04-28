@@ -111,21 +111,24 @@ a:hover{
                    {% if posts.filter_semantics|int() == 1 %}checked{% endif %}>
             <small_label>OR</small_label>
             <br><br>
+            <small_label>The following filters are disabled as I did not get around to implementing them, however
+            I will likely keep working on this project in the future and get to making these work eventually.</small_label>
+            <br><br>
             <small_label>Price Limit</small_label>
-            <input type="checkbox" id="price_check" name="price_check">
+            <input type="checkbox" id="price_check" name="price_check" disabled>
             &nbsp;
             <input type="range" style="width:200px" id="price_slider" name="price_limit" value="50" min="1" max="100"
-                   onchange="updateLabel(this.value)">
+                   onchange="updateLabel(this.value)" disabled>
             <small_label id="price_label">$50.00</small_label>
             <br><br>
             <small_label>Publication Date:</small_label>
-            <input type="checkbox" name="date_check" id="date_check">
+            <input type="checkbox" name="date_check" id="date_check" disabled>
             &nbsp;
             <small_label>From</small_label>
-            <input type="date" style="width:130px" id="startDate" name="startDate">
+            <input type="date" style="width:130px" id="startDate" name="startDate" disabled>
             &nbsp;
             <small_label>To</small_label>
-            <input type="date" style="width:130px" id="endDate" name="endDate">
+            <input type="date" style="width:130px" id="endDate" name="endDate" disabled>
         </div>
         <br><br>
     <br><br>

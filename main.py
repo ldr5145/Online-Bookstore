@@ -374,10 +374,10 @@ def confirm_order():
         return redirect(url_for('order_book'))
     if request.method == "POST":
         if 'confirm' in request.form:
-            db_ops.order_book(session['order_details'])
+            orderID = db_ops.order_book(session['order_details'])
             session.pop('order_details', None)
             session.pop('cart', None)
-            return redirect(url_for('order_successful'))
+            return redirect(url_for('order_successful', orderID=orderID))
         elif 'cancel' in request.form:
             session.pop('order_details', None)
             return redirect(url_for('cart_confirm'))
@@ -400,11 +400,14 @@ def confirm_order():
     posts['total_price'] = str("%.2f" % total_price)
     return render_template('order_confirm.html', developer='Liam Raehsler', posts=posts)
 
-@app.route("/index/order_confirm/successful")
-def order_successful():
+@app.route("/index/order_confirm/successful<orderID>", methods=["POST", "GET"])
+def order_successful(orderID):
     if 'username' not in session:
         return redirect(url_for('login'))
-    return render_template('order_successful.html', developer='Liam Raehsler')
+    posts = {'recommended_books': db_ops.get_recommended_books(orderID, session['username']),
+             'loginID': session['username']}
+    print(posts)
+    return render_template('order_successful.html', developer='Liam Raehsler', posts=posts)
 
 @app.route("/index/my_orders", methods=["POST","GET"])
 def my_orders():
